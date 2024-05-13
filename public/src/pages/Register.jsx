@@ -16,6 +16,13 @@ function Register() {
     draggable: true,
     theme: "light",
   };
+
+  useEffect(() => {
+    if (localStorage.getItem('register-user')) {
+      navigate("/");
+    }
+  }, []);
+  
   const [values, setValues] = useState({
     username: '',
     email: '',
@@ -32,6 +39,7 @@ function Register() {
         email,
         password,
       });
+      console.log("111",data);
       if (data.status === 400) {
         toast.error(data.message, toastOptions);
       }
