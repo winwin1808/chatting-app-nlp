@@ -17,11 +17,11 @@ function Login() {
     theme: "light",
   };
   useEffect(() => {
-    if (localStorage.getItem(process.env.REACT_APP_LOCALHOST_KEY)) {
+    if (localStorage.getItem('register-user')) {
       navigate("/");
     }
   }, []);
-  
+
   const [values, setValues] = useState({
     username: '',
     password: '',
