@@ -42,7 +42,7 @@ function Login() {
       if (data.status === 200) {
         localStorage.setItem('register-user',JSON.stringify(data.user));
       }
-      // navigate('/');
+      navigate('/');
     }
   };
 

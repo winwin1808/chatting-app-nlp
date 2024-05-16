@@ -20,7 +20,14 @@ export default function SetAvatar() {
     draggable: true,
     theme: "light",
   };
-
+useEffect(() => {
+    async function fetchData() {
+        if (!localStorage.getItem('register-user'))
+            navigate("/login");
+    }
+    fetchData();
+}, [navigate]);
+  
 useEffect(() => {
     const fetchData = async () => {
         const data = [];
@@ -38,8 +45,29 @@ useEffect(() => {
     fetchData();
 }, [api]);
 
+
 const setProfilePicture = async () => {
-};
+    if (selectedAvatar === undefined) {
+      toast.error("Please select an avatar", toastOptions);
+    } else {
+      const user = await JSON.parse(
+        localStorage.getItem('register-user')
+      );
+
+      const { data } = await axios.post(`${setAvatarRoute}/${user._id}`, {
+        image: avatars[selectedAvatar],
+      });
+
+      if (data.isSet) {
+        user.isAvatarImageSet = true;
+        user.avatarImage = data.image;
+        localStorage.setItem('register-user', JSON.stringify(user));
+        navigate("/");
+      } else {
+        toast.error("Error setting avatar. Please try again.", toastOptions);
+      }
+    }
+  };
   return (
     <>
       {isLoading ? (
@@ -55,8 +83,8 @@ const setProfilePicture = async () => {
             {avatars.map((avatar, index) => {
               return (
                 <div
-                key = {index}
-                  className={`avatar ${
+                    key = {index}
+                    className={`avatar ${
                     selectedAvatar === index ? "selected" : ""
                   }`}
                 >

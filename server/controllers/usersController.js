@@ -20,7 +20,7 @@ module.exports.register = async (req, res, next) => {
             password: encrypted
         });
         delete newUser.password;
-        return res.status(200).json({ message: "User registered successfully." + newUser });
+        return res.status(200).json({ message: "User registered successfully.", user: newUser });
     } catch (err) {
         next(err);
     }
@@ -44,8 +44,31 @@ module.exports.login = async (req, res, next) => {
 
         delete usernameCheck.password;
 
-        return res.json({ message: usernameCheck, status: 200 });
+        return res.json({ user: usernameCheck, status: 200 });
     } catch (err) {
         next(err);
     }
 };
+
+module.exports.setAvatar = async (req, res, next) => {
+    try {
+        const userId = req.params.id;
+        const avatarImage = req.body.image;
+
+        const userData = await User.findByIdAndUpdate(
+            userId,
+            {
+                isAvatarImageSet: true,
+                avatarImage,
+            },
+            { new: true }
+        );
+
+        return res.status(200).json({
+            isSet: userData.isAvatarImageSet,
+            image: userData.avatarImage,
+        });
+    } catch (ex) {
+        next(ex);
+    }
+};  

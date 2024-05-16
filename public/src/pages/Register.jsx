@@ -44,7 +44,8 @@ function Register() {
         toast.error(data.message, toastOptions);
       }
       if (data.status === 200) {
-        localStorage.setItem('register-user',JSON.stringify(data.user));
+        console.log("111",data.user);
+        localStorage.setItem('register-user',JSON.stringify(data.user));  
       }
       navigate('/');
     }
