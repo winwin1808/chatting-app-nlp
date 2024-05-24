@@ -4,58 +4,67 @@ import { useNavigate } from "react-router-dom";
 import { allUsersRoute, host } from "../utils/ApiRoutes";
 import Contacts from "../components/Contact";
 import Welcome from "../components/Welcome";
+import ChatContainer from "../components/ChatContainer";
 export default function Chat() {
   const navigate = useNavigate(); // Define the navigate function
   const [contacts, setContacts] = useState([]);
   const [currentChat, setCurrentChat] = useState(undefined);
   const [currentUser, setCurrentUser] = useState(undefined);
-useEffect(() => {
-  const fetchUser = async () => {
-    if (!localStorage.getItem('register-user')) {
-      navigate('/login');
-    } else {
-      setCurrentUser(JSON.parse(localStorage.getItem('register-user')));
-    }
-  };
-
-  fetchUser();
-}, []);
-
-useEffect(() => {
-  const fetchData = async () => {
-    if (currentUser) {
-      if (currentUser.isAvatarImageSet) {
-        try {
-          const response = await axios.get(`${allUsersRoute}/${currentUser._id}`);
-          setContacts(response.data);
-        } catch (error) {
-          // Handle error
-          console.error('Error fetching data:', error);
-        }
+  const [isLoaded, setIsLoaded] = useState(false);
+  useEffect(() => {
+    const fetchUser = async () => {
+      if (!localStorage.getItem('register-user')) {
+        navigate('/login');
       } else {
-        navigate("/setAvatar");
+        setCurrentUser(JSON.parse(localStorage.getItem('register-user')));
+        setIsLoaded(true);
       }
-    }
+    };
+
+    fetchUser();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (currentUser) {
+        if (currentUser.isAvatarImageSet) {
+          try {
+            const response = await axios.get(`${allUsersRoute}/${currentUser._id}`);
+            setContacts(response.data);
+          } catch (error) {
+            // Handle error
+            console.error('Error fetching data:', error);
+          }
+        } else {
+          navigate("/setAvatar");
+        }
+      }
+    };
+
+    fetchData();
+  }, [currentUser,navigate]);
+
+  const handleChatChange = (chat) => {
+    setCurrentChat(chat);
+    console.log(333,setCurrentChat)
   };
 
-  fetchData();
-}, [currentUser, navigate]);
+    console.log(222,currentUser)
 
-const handleChatChange = (chat) => {
-  setCurrentChat(chat);
-};
-
-
-return (
-  <>
-    <Container>
-      <div className="container">
-        <Contacts contacts={contacts} changeChat={handleChatChange} />
-        <Welcome />
-      </div>
-    </Container>
-  </>
-);
+  return (
+    <>
+      <Container>
+        <div className="container">
+          <Contacts contacts={contacts} changeChat={handleChatChange} />
+          {isLoaded && currentChat === undefined ? (
+            <Welcome currentUser={currentUser} /> 
+            ):(
+            <ChatContainer currentChat={currentChat} />
+            )}
+        </div>
+      </Container>
+    </>
+  );
 }
 const Container = styled.div`
   height: 100vh;
