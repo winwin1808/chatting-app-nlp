@@ -5,9 +5,11 @@ import { allUsersRoute, host } from "../utils/ApiRoutes";
 import Contacts from "../components/Contact";
 import Welcome from "../components/Welcome";
 import ChatContainer from "../components/ChatContainer";
+import { io } from "socket.io-client";
 export default function Chat() {
   const navigate = useNavigate(); // Define the navigate function
   const [contacts, setContacts] = useState([]);
+  const socket = useRef();
   const [currentChat, setCurrentChat] = useState(undefined);
   const [currentUser, setCurrentUser] = useState(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -23,6 +25,13 @@ export default function Chat() {
 
     fetchUser();
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+      socket.current = io(host);
+      socket.current.emit("add-user", currentUser._id);
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,7 +65,7 @@ export default function Chat() {
           {isLoaded && currentChat === undefined ? (
             <Welcome currentUser={currentUser} /> 
             ):(
-            <ChatContainer currentChat={currentChat} currentUser={currentUser} />
+            <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket}/>
             )}
         </div>
       </Container>
