@@ -15,11 +15,12 @@ export default function Chat() {
   const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     const fetchUser = async () => {
-      if (!localStorage.getItem('register-user')) {
-        navigate('/login');
-      } else {
-        setCurrentUser(JSON.parse(localStorage.getItem('register-user')));
+      let user = localStorage.getItem('register-user');
+      if (user) {
+        setCurrentUser(JSON.parse(user));
         setIsLoaded(true);
+      } else {
+        navigate('/login');
       }
     };
 
@@ -51,7 +52,7 @@ export default function Chat() {
     };
 
     fetchData();
-  }, [currentUser,navigate]);
+  }, [currentUser, navigate]);
 
   const handleChatChange = (chat) => {
     setCurrentChat(chat);
@@ -63,10 +64,10 @@ export default function Chat() {
         <div className="container">
           <Contacts contacts={contacts} changeChat={handleChatChange} />
           {isLoaded && currentChat === undefined ? (
-            <Welcome currentUser={currentUser} /> 
-            ):(
-            <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket}/>
-            )}
+            <Welcome currentUser={currentUser} />
+          ) : (
+            <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} />
+          )}
         </div>
       </Container>
     </>
