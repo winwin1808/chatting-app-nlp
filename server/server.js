@@ -1,21 +1,25 @@
-const express = require('express');
-const cors = require('cors');
-const mongoose = require('mongoose');
-const socket = require('socket.io');
-const userRoutes = require('./routes/userRoutes');
-const messageRoutes = require('./routes/messageRoutes');
+// app.js
+import express from 'express';
+import cors from 'cors';
+import mongoose from 'mongoose';
+import { Server } from 'socket.io';
+import userRoutes from './routes/userRoutes.js';
+import messageRoutes from './routes/messageRoutes.js';
+import authRoutes from './routes/authRoutes.js';
+
 const app = express();
 
-require("dotenv").config();
+import dotenv from "dotenv";
+dotenv.config();
 
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/auth", userRoutes);
+app.use("/api/user", userRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/auth", authRoutes);
 
 mongoose.connect(process.env.MONGO_URL, {
-    useNewUrlParser: true,
     useUnifiedTopology: true
 }).then(() => {
     console.log('connected to mongoDB successfully');
@@ -27,7 +31,7 @@ const server = app.listen(process.env.PORT, () => {
     console.log(`listening on port ${process.env.PORT}`);
 });
 
-const io = socket(server,{
+const io = new Server(server,{
     cors: {
         origin: "http://localhost:3000",
         credentials: true,

@@ -1,53 +1,7 @@
-const User = require('../model/userModel');
-const bcrypt = require('bcrypt');
+import User from '../model/userModel.js'; 
+import bcrypt from 'bcrypt';
 
-module.exports.register = async (req, res, next) => {
-    try {
-        const { username, email, password } = req.body;
-        const usernameCheck = await User.findOne({ username });
-        if (usernameCheck) {
-            return res.json({ message: "Username already used", status: 400 });
-        }
-        const emailCheck = await User.findOne({ email });
-        if (emailCheck) {
-            return res.json({ message: "Email already used", status: 400 });
-        }
-        const encrypted = await bcrypt.hash(password, 10);
-        const newUser = await User.create({
-            username,
-            email,
-            password: encrypted
-        });
-        delete newUser.password;
-        return res.status(200).json({ message: "User registered successfully.", user: newUser });
-    } catch (err) {
-        next(err);
-    }
-};
-
-module.exports.login = async (req, res, next) => {
-    try {
-        const { username, password } = req.body;
-        const usernameCheck = await User.findOne({ username });
-        if (!usernameCheck) {
-            return res.json({ message: "Inccorect user name or password", status: 400 });
-        }
-
-        const passwordCheck = await bcrypt.compare(password, usernameCheck.password);
-
-        if (!passwordCheck) {
-            return res.json({ message: "Inccorect user name or password", status: 400 });
-        }
-
-        delete usernameCheck.password;
-
-        return res.json({ user: usernameCheck, status: 200 });
-    } catch (err) {
-        next(err);
-    }
-};
-
-module.exports.setAvatar = async (req, res, next) => {
+export const setAvatar = async (req, res, next) => {
     try {
         const userId = req.params.id;
         const avatarImage = req.body.image;
@@ -69,7 +23,8 @@ module.exports.setAvatar = async (req, res, next) => {
         next(ex);
     }
 };
-module.exports.getAllUsers = async (req, res, next) => {
+
+export const getAllUsers = async (req, res, next) => {
     try {
         const users = await User.find({ _id: { $ne: req.params.id } }).select([
             "email",
@@ -82,13 +37,3 @@ module.exports.getAllUsers = async (req, res, next) => {
         next(ex);
     }
 };
-
-module.exports.logOut = (req, res, next) => {
-    try {
-      if (!req.params.id) return res.json({ msg: "User id is required " });
-      onlineUsers.delete(req.params.id);
-      return res.status(200).send();
-    } catch (ex) {
-      next(ex);
-    }
-  };
