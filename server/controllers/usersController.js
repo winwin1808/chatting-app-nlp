@@ -6,7 +6,6 @@ module.exports.register = async (req, res, next) => {
         const { username, email, password } = req.body;
         const usernameCheck = await User.findOne({ username });
         if (usernameCheck) {
-            console.log('111', usernameCheck)
             return res.json({ message: "Username already used", status: 400 });
         }
         const emailCheck = await User.findOne({ email });
@@ -30,9 +29,7 @@ module.exports.login = async (req, res, next) => {
     try {
         const { username, password } = req.body;
         const usernameCheck = await User.findOne({ username });
-        console.log('111', usernameCheck)
         if (!usernameCheck) {
-            console.log('222', usernameCheck)
             return res.json({ message: "Inccorect user name or password", status: 400 });
         }
 

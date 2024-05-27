@@ -39,12 +39,10 @@ function Register() {
         email,
         password,
       });
-      console.log("111",data);
       if (data.status === 400) {
         toast.error(data.message, toastOptions);
       }
       if (data.status === 200) {
-        console.log("111",data.user);
         localStorage.setItem('register-user',JSON.stringify(data.user));  
       }
       navigate('/');

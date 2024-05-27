@@ -35,7 +35,6 @@ function Login() {
         username,
         password,
       });
-      console.log("111",data);
       if (data.status === 400) {
         toast.error(data.message, toastOptions);
       }

@@ -25,7 +25,7 @@ export default function Logout() {
 
 const Button = styled.button`
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   align-items: center;
   padding: 0.5rem;
   border-radius: 0.5rem;

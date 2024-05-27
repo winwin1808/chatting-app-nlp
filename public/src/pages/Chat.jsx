@@ -46,10 +46,7 @@ export default function Chat() {
 
   const handleChatChange = (chat) => {
     setCurrentChat(chat);
-    console.log(333,setCurrentChat)
   };
-
-    console.log(222,currentUser)
 
   return (
     <>
@@ -59,7 +56,7 @@ export default function Chat() {
           {isLoaded && currentChat === undefined ? (
             <Welcome currentUser={currentUser} /> 
             ):(
-            <ChatContainer currentChat={currentChat} />
+            <ChatContainer currentChat={currentChat} currentUser={currentUser} />
             )}
         </div>
       </Container>
