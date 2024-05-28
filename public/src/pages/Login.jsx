@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Logo from '../assets/logo.png';
 import { ToastContainer, toast } from 'react-toastify';
@@ -16,11 +16,12 @@ function Login() {
     draggable: true,
     theme: "light",
   };
+
   useEffect(() => {
     if (localStorage.getItem('register-user')) {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const [values, setValues] = useState({
     username: '',
@@ -29,35 +30,37 @@ function Login() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(handleValidation()) {
-      const { username, password } = values;
-      const { data } = await axios.post(loginRoute, {
-        username,
-        password,
-      });
-      if (data.status === 400) {
-        toast.error(data.message, toastOptions);
+    if (handleValidation()) {
+      try {
+        const { username, password } = values;
+        const response = await axios.post(loginRoute, {
+          username,
+          password,
+        }, { withCredentials: true }); // Ensure cookies are included in the request
+  
+        const data = response.data;
+  
+        if (response.status === 200) {
+          localStorage.setItem('register-user', JSON.stringify(data.message));
+          navigate('/');
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          toast.error(error.response.data.message, toastOptions);
+        } else {
+          toast.error('An unexpected error occurred', toastOptions);
+        }
       }
-      if (data.status === 200) {
-        localStorage.setItem('register-user',JSON.stringify(data.user));
-      }
-      navigate('/');
     }
   };
 
   const handleValidation = () => {
     const { password, username } = values;
-    if (password  === "") {
-      toast.error(
-        "Email and password should not be empty.",
-        toastOptions
-      );
+    if (username === "") {
+      toast.error("Username is required.", toastOptions);
       return false;
-    } else if (username.length === "") {
-      toast.error(
-        "Email and password should not be empty.",
-        toastOptions
-      );
+    } else if (password === "") {
+      toast.error("Password is required.", toastOptions);
       return false;
     }
     return true;
@@ -66,10 +69,11 @@ function Login() {
   const handleChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
   };
+
   return (
     <>
       <FormContainer>
-        <form onSubmit={(event) => handleSubmit(event)}>
+        <form onSubmit={handleSubmit}>
           <div className='brand'>
             <img src={Logo} alt='Logo' />
             <h1>Chatting App</h1>
@@ -78,26 +82,23 @@ function Login() {
             type="text"
             placeholder='Username'
             name='username'
-            onChange={e => handleChange(e)}
-            min="3" />
+            onChange={handleChange}
+            min="3"
+          />
           <input
             type="password"
             placeholder='Password'
             name='password'
-            onChange={e => handleChange(e)} />
-
+            onChange={handleChange}
+          />
           <button type='submit'>Login</button>
-
-          <span>Already have account? <Link to="/register">Register</Link>
-
-          </span>
+          <span>Don't have an account? <Link to="/register">Register</Link></span>
         </form>
       </FormContainer>
       <ToastContainer />
     </>
   );
 }
-
 
 const FormContainer = styled.div`
   height: 100vh;
@@ -153,7 +154,6 @@ const FormContainer = styled.div`
     padding: 1rem 2rem;
     border: none;
     font-weight: bold;
-    
     cursor: pointer;
     border-radius: 0.3rem;
     font-size: 1rem;
@@ -171,6 +171,6 @@ const FormContainer = styled.div`
       text-decoration: none;
     }
   }
-  
 `;
-export default Login
+
+export default Login;

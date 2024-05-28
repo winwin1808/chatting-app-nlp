@@ -1,5 +1,7 @@
 import Messages from '../model/messageModel.js';
 import Conversations from '../model/conversationModel.js';
+import { getReceiverSocketId, io } from "../server.js";
+
 export const sendMsg = async (req, res, next) => {
     try {
         const { message } = req.body;
@@ -27,34 +29,19 @@ export const sendMsg = async (req, res, next) => {
         }
 
         await Promise.all([conversation.save(), newMessage.save()]);
+
+        const receiverSocketId = getReceiverSocketId(receiver);
+        if (receiverSocketId) {
+            // io.to(<socket_id>).emit() used to send events to specific client
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
+
         res.status(201).json(newMessage);
-        // const { from, to, message } = req.body;
-        // const data = await Messages.create({
-        //     message: { text: message },
-        //     users: [from, to],
-        //     sender: from,
-        // });
-        // if (data) return res.status(200).json({ msg: "Message added successfully." });
-        // else return res.status(200).json({ msg: "Failed to add message to the database" });
     } catch (error) {
         console.log("Error in sendMsg controller: ", error.message);
-		res.status(500).json({ error: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 };
-// export const sendMsg = async (req, res, next) => {
-//     try {
-//         const { from, to, message } = req.body;
-//         const data = await Messages.create({
-//             message: { text: message },
-//             users: [from, to],
-//             sender: from,
-//         });
-//         if (data) return res.status(200).json({ msg: "Message added successfully." });
-//         else return res.status(200).json({ msg: "Failed to add message to the database" });
-//     } catch (ex) {
-//         next(ex);
-//     }
-// };
 
 export const getAllMsg = async (req, res, next) => {
     try {
@@ -73,24 +60,4 @@ export const getAllMsg = async (req, res, next) => {
         console.log("Error in getAllMsg controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
-}
-// export const getAllMsg = async (req, res, next) => {
-//     try {
-//         const { from, to } = req.body;
-//         const messages = await Messages.find({
-//             users: {
-//                 $all: [from, to],
-//             },
-//         }).sort({ updatedAt: 1 });
-//         const projectedMessages = messages.map((msg) => {
-//             return {
-//                 fromSelf: msg.sender.toString() === from,
-//                 message: msg.message.text,
-//             };
-//         });
-
-//         res.json(projectedMessages);
-//     } catch (err) {
-//         next(err);
-//     }
-// };
+};

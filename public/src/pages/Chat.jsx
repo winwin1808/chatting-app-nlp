@@ -16,7 +16,7 @@ export default function Chat() {
   useEffect(() => {
     const fetchUser = async () => {
       let user = localStorage.getItem('register-user');
-      if (user) {
+      if (user && user !== 'undefined') {
         setCurrentUser(JSON.parse(user));
         setIsLoaded(true);
       } else {
@@ -25,7 +25,7 @@ export default function Chat() {
     };
 
     fetchUser();
-  }, []);
+  }, [navigate]);
 
   useEffect(() => {
     if (currentUser) {
@@ -39,7 +39,7 @@ export default function Chat() {
       if (currentUser) {
         if (currentUser.isAvatarImageSet) {
           try {
-            const response = await axios.get(`${allUsersRoute}/${currentUser._id}`);
+            const response = await axios.get(`${allUsersRoute}/${currentUser._id}`, { withCredentials: true });
             setContacts(response.data);
           } catch (error) {
             // Handle error
