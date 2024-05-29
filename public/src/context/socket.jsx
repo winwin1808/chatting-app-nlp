@@ -1,41 +1,52 @@
-import { createContext, useState, useEffect, useContext } from "react";
-import { host } from "../utils/ApiRoutes"
-import io from "socket.io-client";
+import React, { createContext, useState, useEffect, useContext } from 'react';
+import io from 'socket.io-client';
+import { host } from '../utils/ApiRoutes';
 
 const SocketContext = createContext();
+const user = JSON.parse(localStorage.getItem("register-user"));
 
 export const useSocketContext = () => {
-	return useContext(SocketContext);
+    return useContext(SocketContext);
 };
 
 export const SocketContextProvider = ({ children }) => {
-	const [socket, setSocket] = useState(null);
-	const [onlineUsers, setOnlineUsers] = useState([]);
-	const user = JSON.parse(localStorage.getItem("register-user"));
+    const [socket, setSocket] = useState(null);
+    const [onlineUsers, setOnlineUsers] = useState([]);
+    
+    console.log(user);
+    useEffect(() => {
+        if (user) {
+            // Initialize socket connection
+            const socket = io(host, {
+                query: {
+                    userId: user._id,
+                },
+                withCredentials: true,
+            });
 
-	useEffect(() => {
-		if (user) {
-			const socket = io(host, {
-				query: {
-					userId: user._id,
-				},
-			});
+            setSocket(socket);
 
-			setSocket(socket);
+            // Event listener for online users
+            socket.on("getOnlineUsers", (users) => {
+                setOnlineUsers(users);
+            });
 
-			// socket.on() is used to listen to the events. can be used both on client and server side
-			socket.on("getOnlineUsers", (users) => {
-				setOnlineUsers(users);
-			});
+            // Clean up the socket when the component unmounts or user logs out
+            return () => {
+                socket.close();
+                setSocket(null);
+            };
+        }
+    }, [user]); // Depend on the user state to reinitialize the socket if necessary
 
-			return () => socket.close();
-		} else {
-			if (socket) {
-				socket.close();
-				setSocket(null);
-			}
-		}
-	}, [user,socket]);
+    useEffect(() => {
+        // Logging the current list of online users whenever it changes
+        console.log('Online users:', onlineUsers);
+    }, [onlineUsers]); // Depend on onlineUsers to log when it changes
 
-	return <SocketContext.Provider value={{ socket, onlineUsers }}>{children}</SocketContext.Provider>;
+    return (
+        <SocketContext.Provider value={{ socket, onlineUsers }}>
+            {children}
+        </SocketContext.Provider>
+    );
 };

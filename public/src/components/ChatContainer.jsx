@@ -24,7 +24,7 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
             ...message,
             fromSelf: currentUser._id === message.sender
           }));
-        
+
           setMessages(mappedMessages);
         } catch (error) {
           console.error('Error fetching messages:', error);
@@ -35,10 +35,16 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
   }, [currentChat, currentUser]);
 
   useEffect(() => {
-    if (socket.current) {
-      socket.current.on('msg-receive', (msg) => {
-        setArrivalMessage({ fromSelf: false, message: msg });
+    if (socket) {
+      socket.on('newMessage', (msg) => {
+        setArrivalMessage({
+          ...msg,
+          fromSelf: false
+        });
+        
       });
+
+      return () => socket.off('newMessage');
     }
   }, [socket]);
 
@@ -56,11 +62,13 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
         { withCredentials: true }
       );
 
-      socket.current.emit('send-msg', {
-        receiver: currentChat._id, 
-        sender: currentUser._id,  
-        message: msg            
-    });
+      if (socket) {
+        socket.emit('send-msg', {
+          receiver: currentChat._id,
+          sender: currentUser._id,
+          message: msg
+        });
+      }
 
       setMessages(prevMessages => [...prevMessages, { fromSelf: true, message: msg }]);
     } catch (error) {

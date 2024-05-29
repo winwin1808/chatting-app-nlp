@@ -43,8 +43,8 @@ export const io = new Server(server, {
   }
 })
 
-export const getReceiverSocketId = (receiverId) => {
-  return userSocketMap[receiverId];
+export const getReceiverSocketId = (receiver) => {
+  return userSocketMap[receiver];
 };
 
 const userSocketMap = {}; // {userId: socketId}
@@ -53,16 +53,20 @@ io.on("connection", (socket) => {
   console.log("a user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
-  if (userId != "undefined") userSocketMap[userId] = socket.id;
+  console.log("userId::",userId)
+  if (userId && userId !== "undefined") {
+    userSocketMap[userId] = socket.id;
+  }
 
-  // io.emit() is used to send events to all the connected clients
+  // Emit online users to all clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
-
-  // socket.on() is used to listen to the events. can be used both on client and server side
+  console.log("userSocketMap::",userSocketMap)
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
-    delete userSocketMap[userId];
-    io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    if (userId && userSocketMap[userId]) {
+      delete userSocketMap[userId];
+      io.emit("getOnlineUsers", Object.keys(userSocketMap));
+    }
   });
 });
 
