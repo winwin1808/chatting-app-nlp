@@ -1,11 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react'
-import styled from 'styled-components'
-import Logout from '../components/Logout'
-import ChatInput from '../components/ChatInput'
-import Messages from '../components/Messages'
-import axios from 'axios'
-import { sendMessageRoute, recieveMessageRoute } from "../utils/ApiRoutes";
+import React, { useState, useEffect, useRef } from 'react';
+import styled from 'styled-components';
+import Logout from '../components/Logout';
+import ChatInput from '../components/ChatInput';
+import axios from 'axios';
+import { sendMessageRoute, receiveMessageRoute } from '../utils/ApiRoutes';
 import { v4 as uuidv4 } from 'uuid';
+
 export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
@@ -14,85 +14,110 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
   useEffect(() => {
     async function fetchData() {
       if (currentUser && currentChat) {
-        const response = await axios.post(recieveMessageRoute, {
-          from: currentUser._id,
-          to: currentChat._id
-        });
-        setMessages(response.data);
-      }
+        try {
+          const response = await axios.post(
+            `${receiveMessageRoute}/${currentChat._id}`,
+            null,
+            { withCredentials: true }
+          );
+          const mappedMessages = response.data.map(message => ({
+            ...message,
+            fromSelf: currentUser._id === message.sender
+          }));
 
+          setMessages(mappedMessages);
+        } catch (error) {
+          console.error('Error fetching messages:', error);
+        }
+      }
     }
     fetchData();
   }, [currentChat, currentUser]);
 
-  async function handleSendMsg(msg) {
-    await axios.post(sendMessageRoute, {
-      from: currentUser._id,
-      to: currentChat._id,
-      message: msg
-    });
-    socket.current.emit("send-msg", {
-      to: currentChat._id,
-      from: currentUser._id,
-      msg,
-    });
-
-    const msgs = [...messages];
-    msgs.push({ fromSelf: true, message: msg });
-    setMessages(msgs);
-  }
   useEffect(() => {
-    if (socket.current) {
-      socket.current.on("msg-recieve", (msg) => {
-        setArrivalMessage({ fromSelf: false, message: msg });
+    if (socket) {
+      socket.on('newMessage', (msg) => {
+        setArrivalMessage({
+          ...msg,
+          fromSelf: false
+        });
+        
       });
+
+      return () => socket.off('newMessage');
     }
   }, [socket]);
 
   useEffect(() => {
-    arrivalMessage && setMessages((prev) => [...prev, arrivalMessage]);
+    if (arrivalMessage) {
+      setMessages(prevMessages => [...prevMessages, arrivalMessage]);
+    }
   }, [arrivalMessage]);
 
+  async function handleSendMsg(msg) {
+    try {
+      await axios.post(
+        `${sendMessageRoute}/${currentChat._id}`,
+        { message: msg },
+        { withCredentials: true }
+      );
+
+      if (socket) {
+        socket.emit('send-msg', {
+          receiver: currentChat._id,
+          sender: currentUser._id,
+          message: msg
+        });
+      }
+
+      setMessages(prevMessages => [...prevMessages, { fromSelf: true, message: msg }]);
+    } catch (error) {
+      console.error('Error sending message:', error);
+    }
+  }
+
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
-  
 
   if (currentChat !== undefined) {
-    return <Container>
-      <div className="chat-header">
-        <div className="user-details">
-          <div className="avatar">
-            <img
-              src={`data:image/svg+xml;base64,${currentChat.avatarImage}`}
-              alt=""
-            />
+    return (
+      <Container>
+        <div className="chat-header">
+          <div className="user-details">
+            <div className="avatar">
+              <img
+                src={`data:image/svg+xml;base64,${currentChat.avatarImage}`}
+                alt=""
+              />
+            </div>
+            <div className="username">
+              <h3>{currentChat.username}</h3>
+            </div>
           </div>
-          <div className="username">
-            <h3>{currentChat.username}</h3>
-          </div>
+          <Logout />
         </div>
-        <Logout />
-      </div>
-      <div className="chat-messages">
-        {
-          messages.map((msg) => {
-            return (
-              <div ref={scrollRef} key={uuidv4()}>
-                <div className={`message ${msg.fromSelf ? "sended" : "recieved"}`}>
-                  <div className="content">
-                    <p>{msg.message}</p>
-                  </div>
+        <div className="chat-messages">
+          {messages.map((msg) => (
+            <div ref={scrollRef} key={uuidv4()}>
+              <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
+                <div className="content">
+                  <p>{msg.message}</p>
                 </div>
               </div>
-            )
-          })
-        }
-      </div>
-      <ChatInput handleSendMsg={handleSendMsg} />
-    </Container>
+            </div>
+          ))}
+        </div>
+        <ChatInput handleSendMsg={handleSendMsg} />
+      </Container>
+    );
   }
+
+  return null;
 }
+
 const Container = styled.div`
   display: grid;
   grid-template-rows: 10% 80% 10%;
@@ -110,15 +135,16 @@ const Container = styled.div`
     gap: 1rem;
     padding: 1rem;
     border-bottom: 0.05rem solid #770000;
-    background-color: #FFFFFF;
+    background-color: #ffffff;
     min-height: 3rem;
+
     .user-details {
       display: flex;
       gap: 0.5rem;
       align-items: center;
 
       h3 {
-        color: #00176B;
+        color: #00176b;
         font-size: 0.8rem;
         font-weight: 600 !important;
       }
@@ -170,12 +196,12 @@ const Container = styled.div`
       justify-content: flex-end;
 
       .content {
-        background-color: #FF9AB2;
+        background-color: #ff9ab2;
         color: white;
       }
     }
 
-    .recieved {
+    .received {
       justify-content: flex-start;
 
       .content {

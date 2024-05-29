@@ -21,7 +21,7 @@ function Register() {
     if (localStorage.getItem('register-user')) {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
   
   const [values, setValues] = useState({
     username: '',
@@ -43,7 +43,7 @@ function Register() {
         toast.error(data.message, toastOptions);
       }
       if (data.status === 200) {
-        localStorage.setItem('register-user',JSON.stringify(data.user));  
+        localStorage.setItem('register-user',JSON.stringify(data.message));  
       }
       navigate('/');
     }

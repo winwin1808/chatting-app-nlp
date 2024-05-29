@@ -1,12 +1,11 @@
 import jwt from "jsonwebtoken";
-import User from "../models/userModel.js"; 
+import User from "../model/userModel.js"; 
 import dotenv from "dotenv";
 dotenv.config();
 
 export const protectRoute = async (req, res, next) => {
     try {
         const token = req.cookies.jwt;
-
         if (!token) {
             return res.status(401).json({ error: "Unauthorized - No Token Provided" });
         }

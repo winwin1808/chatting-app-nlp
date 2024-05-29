@@ -1,11 +1,14 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
+import { SocketContextProvider } from './context/socket'; // Adjust the path as necessary
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(
+ReactDOM.render(
   <React.StrictMode>
-    <App />
-  </React.StrictMode>
+    <SocketContextProvider>
+      <App />
+    </SocketContextProvider>
+  </React.StrictMode>,
+  document.getElementById('root')
 );

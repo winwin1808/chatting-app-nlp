@@ -4,18 +4,24 @@ import { FaPowerOff } from 'react-icons/fa';
 import styled from "styled-components";
 import axios from "axios";
 import { logoutRoute } from "../utils/ApiRoutes";
+
 export default function Logout() {
   const navigate = useNavigate();
+
   const handleClick = async () => {
-    const id = await JSON.parse(
-      localStorage.getItem("register-user")
-    )._id;
-    const data = await axios.get(`${logoutRoute}/${id}`);
-    if (data.status === 200) {
+    try {
+      const user = JSON.parse(localStorage.getItem("register-user"));
+      const id = user._id;
+      await axios.post(`${logoutRoute}/${id}`, { withCredentials: true });
       localStorage.clear();
       navigate("/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
     }
   };
+  
+  
+
   return (
     <Button onClick={handleClick}>
       <FaPowerOff />

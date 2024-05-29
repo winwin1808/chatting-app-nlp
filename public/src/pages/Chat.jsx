@@ -1,22 +1,23 @@
-import React, { useEffect, useState, useRef } from "react"; import styled from 'styled-components';
+import React, { useEffect, useState } from "react"; import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { allUsersRoute, host } from "../utils/ApiRoutes";
+import { allUsersRoute } from "../utils/ApiRoutes";
 import Contacts from "../components/Contact";
 import Welcome from "../components/Welcome";
 import ChatContainer from "../components/ChatContainer";
-import { io } from "socket.io-client";
+import { useSocketContext } from '../context/socket';
 export default function Chat() {
   const navigate = useNavigate(); // Define the navigate function
   const [contacts, setContacts] = useState([]);
-  const socket = useRef();
+  const { socket, onlineUsers } = useSocketContext();
   const [currentChat, setCurrentChat] = useState(undefined);
   const [currentUser, setCurrentUser] = useState(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     const fetchUser = async () => {
       let user = localStorage.getItem('register-user');
-      if (user) {
+      console.log("OnlineUser::::", onlineUsers);
+      if (user && user !== 'undefined') {
         setCurrentUser(JSON.parse(user));
         setIsLoaded(true);
       } else {
@@ -25,21 +26,27 @@ export default function Chat() {
     };
 
     fetchUser();
-  }, []);
+  }, [navigate,onlineUsers]);
 
-  useEffect(() => {
-    if (currentUser) {
-      socket.current = io(host);
-      socket.current.emit("add-user", currentUser._id);
-    }
-  }, [currentUser]);
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     const socket = io(host, {
+	// 			query: {
+	// 				userId: currentUser._id,
+	// 			},
+	// 			withCredentials: true,
+	// 		});
+      
+  //     socket.emit("add-user", currentUser._id);
+  //   }
+  // }, [currentUser]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (currentUser) {
         if (currentUser.isAvatarImageSet) {
           try {
-            const response = await axios.get(`${allUsersRoute}/${currentUser._id}`);
+            const response = await axios.get(`${allUsersRoute}/${currentUser._id}`, { withCredentials: true });
             setContacts(response.data);
           } catch (error) {
             // Handle error
