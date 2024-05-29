@@ -56,7 +56,6 @@ export const login = async (req, res, next) => {
 export const logOut = (req, res, next) => {
     try {
         if (!req.params.id) return res.status(404).json({ message: "User id is required" });
-        onlineUsers.delete(req.params.id);
         res.cookie("jwt", "", { maxAge: 0 });
         return res.status(200).send();
     } catch (ex) {
