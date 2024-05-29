@@ -12,8 +12,7 @@ export const useSocketContext = () => {
 export const SocketContextProvider = ({ children }) => {
     const [socket, setSocket] = useState(null);
     const [onlineUsers, setOnlineUsers] = useState([]);
-    
-    console.log(user);
+
     useEffect(() => {
         if (user) {
             // Initialize socket connection
@@ -40,8 +39,6 @@ export const SocketContextProvider = ({ children }) => {
     }, []); // Depend on the user state to reinitialize the socket if necessary
 
     useEffect(() => {
-        // Logging the current list of online users whenever it changes
-        console.log('Online users:', onlineUsers);
     }, [onlineUsers]); // Depend on onlineUsers to log when it changes
 
     return (

@@ -53,14 +53,12 @@ io.on("connection", (socket) => {
   console.log("a user connected", socket.id);
 
   const userId = socket.handshake.query.userId;
-  console.log("userId::",userId)
   if (userId && userId !== "undefined") {
     userSocketMap[userId] = socket.id;
   }
 
   // Emit online users to all clients
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
-  console.log("userSocketMap::",userSocketMap)
   socket.on("disconnect", () => {
     console.log("user disconnected", socket.id);
     if (userId && userSocketMap[userId]) {

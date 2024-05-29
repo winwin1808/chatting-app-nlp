@@ -16,7 +16,6 @@ export default function Chat() {
   useEffect(() => {
     const fetchUser = async () => {
       let user = localStorage.getItem('register-user');
-      console.log("OnlineUser::::", onlineUsers);
       if (user && user !== 'undefined') {
         setCurrentUser(JSON.parse(user));
         setIsLoaded(true);

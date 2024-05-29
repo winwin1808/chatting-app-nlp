@@ -32,10 +32,8 @@ export const sendMsg = async (req, res, next) => {
 
         // Save the conversation and message
         await Promise.all([conversation.save(), newMessage.save()]);
-        console.log("RECEIVER", receiver)
         // Get the receiver's socket ID
         const receiverSocketId = getReceiverSocketId(receiver);
-        console.log("receiverSocketId", receiverSocketId);
         if (receiverSocketId) {
             // Emit the new message to the receiver if they are connected
             io.to(receiverSocketId).emit("newMessage", newMessage);
