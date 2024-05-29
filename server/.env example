@@ -1,2 +1,4 @@
 PORT=5000
 MONGO_URL="mongodb://localhost:27017/chat"
+JWT_SECRET="BASE64"
+NODE_ENV="development"
