@@ -37,7 +37,7 @@ export const SocketContextProvider = ({ children }) => {
                 setSocket(null);
             };
         }
-    }, [user]); // Depend on the user state to reinitialize the socket if necessary
+    }, []); // Depend on the user state to reinitialize the socket if necessary
 
     useEffect(() => {
         // Logging the current list of online users whenever it changes
