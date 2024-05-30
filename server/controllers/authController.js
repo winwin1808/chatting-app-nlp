@@ -32,6 +32,14 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
     try {
         const { username, password } = req.body;
+        console.log("req",req.body)
+        // Check if the database has any collections
+        const userCount = await User.countDocuments();
+
+        if (userCount === 0) {
+            return res.status(400).json({ message: "Please create an account" });
+        }
+
         const usernameCheck = await User.findOne({ username });
         if (!usernameCheck) {
             return res.status(400).json({ message: "Incorrect username or password" });
