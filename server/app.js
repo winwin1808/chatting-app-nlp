@@ -21,4 +21,6 @@ app.use("/api/user", userRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/auth", authRoutes);
 
+app.options('*', cors());
+
 export default app;
