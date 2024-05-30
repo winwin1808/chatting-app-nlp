@@ -1,13 +1,18 @@
+import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 
+dotenv.config();
+const url = process.env.NODE_ENV === 'production' ? process.env.PROD_URL : process.env.DEV_URL;
+
 let io;
+
 
 const userSocketMap = {}; // {userId: socketId}
 
 export const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: url,
       credentials: true,
       methods: ["GET", "POST"]
     }
