@@ -15,14 +15,19 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     async function fetchData() {
       if (currentUser && currentChat) {
         try {
+          const token = localStorage.getItem('jwt');
           const response = await axios.post(
             `${receiveMessageRoute}/${currentChat._id}`,
             null,
-            { withCredentials: true }
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
           );
-          const mappedMessages = response.data.map(message => ({
+          const mappedMessages = response.data.map((message) => ({
             ...message,
-            fromSelf: currentUser._id === message.sender
+            fromSelf: currentUser._id === message.sender,
           }));
 
           setMessages(mappedMessages);
@@ -39,9 +44,8 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       socket.on('newMessage', (msg) => {
         setArrivalMessage({
           ...msg,
-          fromSelf: false
+          fromSelf: false,
         });
-        
       });
 
       return () => socket.off('newMessage');
@@ -50,27 +54,35 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
 
   useEffect(() => {
     if (arrivalMessage) {
-      setMessages(prevMessages => [...prevMessages, arrivalMessage]);
+      setMessages((prevMessages) => [...prevMessages, arrivalMessage]);
     }
   }, [arrivalMessage]);
 
   async function handleSendMsg(msg) {
     try {
+      const token = localStorage.getItem('jwt');
       await axios.post(
         `${sendMessageRoute}/${currentChat._id}`,
         { message: msg },
-        { withCredentials: true }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       if (socket) {
         socket.emit('send-msg', {
           receiver: currentChat._id,
           sender: currentUser._id,
-          message: msg
+          message: msg,
         });
       }
 
-      setMessages(prevMessages => [...prevMessages, { fromSelf: true, message: msg }]);
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { fromSelf: true, message: msg },
+      ]);
     } catch (error) {
       console.error('Error sending message:', error);
     }

@@ -1,6 +1,6 @@
 import User from '../models/userModel.js'; 
 import bcrypt from 'bcrypt';
-import { generateTokenAndSetCookie } from '../utils/generateToken.js'; 
+import { generateToken } from '../utils/generateToken.js'; 
 
 export const register = async (req, res, next) => {
     try {
@@ -23,9 +23,9 @@ export const register = async (req, res, next) => {
         delete userData.password;
         
         if (newUser) {
-            generateTokenAndSetCookie(newUser._id, res);
+            const token = generateToken(newUser._id);
+            return res.status(200).json({ message: "User registered successfully.", user: userData, token });
         }
-        return res.status(200).json({ message: "User registered successfully.", user: userData });
     } catch (err) {
         next(err);
     }
@@ -34,8 +34,6 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
     try {
         const { username, password } = req.body;
-        console.log("req",req.body)
-        // Check if the database has any collections
         const userCount = await User.countDocuments();
 
         if (userCount === 0) {
@@ -56,9 +54,8 @@ export const login = async (req, res, next) => {
         const userData = usernameCheck.toObject();
         delete userData.password;
 
-        generateTokenAndSetCookie(usernameCheck._id, res);
-        
-        return res.status(200).json({ message: userData });
+        const token = generateToken(usernameCheck._id);
+        return res.status(200).json({ message: userData, token });
     } catch (err) {
         next(err);
     }
@@ -67,8 +64,7 @@ export const login = async (req, res, next) => {
 export const logOut = (req, res, next) => {
     try {
         if (!req.params.id) return res.status(404).json({ message: "User id is required" });
-        res.cookie("jwt", "", { maxAge: 0 });
-        return res.status(200).send();
+        return res.status(200).json({ message: "User logged out successfully." });
     } catch (ex) {
         next(ex);
     }

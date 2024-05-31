@@ -42,6 +42,7 @@ function Login() {
   
         if (response.status === 200) {
           localStorage.setItem('register-user', JSON.stringify(data.message));
+          localStorage.setItem('jwt', data.token);
           navigate('/');
         }
       } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link,useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import styled from 'styled-components';
 import Logo from '../assets/logo.png';
 import { ToastContainer, toast } from 'react-toastify';
@@ -43,9 +43,10 @@ function Register() {
         toast.error(data.message, toastOptions);
       }
       if (data.status === 200) {
-        localStorage.setItem('register-user',JSON.stringify(data.message));  
+        localStorage.setItem('register-user', JSON.stringify(data.user));
+        localStorage.setItem('jwt', data.token);  
+        navigate('/');
       }
-      navigate('/');
     }
   };
 
@@ -123,7 +124,6 @@ function Register() {
   );
 }
 
-
 const FormContainer = styled.div`
   height: 100vh;
   width: 100vw;
@@ -196,6 +196,6 @@ const FormContainer = styled.div`
       text-decoration: none;
     }
   }
-  
 `;
-export default Register
+
+export default Register;
