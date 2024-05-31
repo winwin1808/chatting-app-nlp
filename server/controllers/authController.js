@@ -19,11 +19,13 @@ export const register = async (req, res, next) => {
             email,
             password: encrypted
         });
-        delete newUser.password;
+        const userData = newUser.toObject();
+        delete userData.password;
+        
         if (newUser) {
             generateTokenAndSetCookie(newUser._id, res);
         }
-        return res.status(200).json({ message: "User registered successfully.", user: newUser });
+        return res.status(200).json({ message: "User registered successfully.", user: userData });
     } catch (err) {
         next(err);
     }
@@ -51,11 +53,12 @@ export const login = async (req, res, next) => {
             return res.status(400).json({ message: "Incorrect username or password" });
         }
 
-        delete usernameCheck.password;
+        const userData = usernameCheck.toObject();
+        delete userData.password;
 
         generateTokenAndSetCookie(usernameCheck._id, res);
         
-        return res.status(200).json({ message: usernameCheck });
+        return res.status(200).json({ message: userData });
     } catch (err) {
         next(err);
     }
