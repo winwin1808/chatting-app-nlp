@@ -11,6 +11,6 @@ const server = app.listen(process.env.PORT, () => {
   console.log(`Listening on port ${process.env.PORT}`);
 });
 
-const io = initializeSocket(server);
+initializeSocket(server);
 
 export default app;
