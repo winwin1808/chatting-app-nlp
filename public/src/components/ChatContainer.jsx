@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import ChatInput from '../components/ChatInput';
+import RatingModal from '../components/Rating';
 import axios from 'axios';
-import { sendMessageRoute, receiveMessageRoute } from '../utils/ApiRoutes';
+import { sendMessageRoute, receiveMessageRoute, sendRatingRoute } from '../utils/ApiRoutes';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
+  const [ratingModalOpen, setRatingModalOpen] = useState(false);
+
   const scrollRef = useRef();
 
   useEffect(() => {
@@ -87,6 +90,21 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     }
   }
 
+  async function handleSendRating(rating, content) {
+    try {
+      const token = localStorage.getItem('jwt');
+      const response = await axios.post(`${sendRatingRoute}/${currentChat._id}`, 
+      { star: rating, content: content }, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log('Rating submitted: ', response.data);
+    } catch (error) {
+      console.error('Error submitting rating: ', error);
+    }
+  }
+
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -120,7 +138,10 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
             </div>
           ))}
         </div>
-        <ChatInput handleSendMsg={handleSendMsg} />
+        <ChatInput handleSendMsg={handleSendMsg} 
+        openRatingModal={() => setRatingModalOpen(true)} />
+        <RatingModal isOpen={ratingModalOpen} 
+        onRequestClose={() => setRatingModalOpen(false)} handleSubmit={handleSendRating} />
       </Container>
     );
   }
@@ -157,7 +178,7 @@ const Container = styled.div`
         color: #00176b;
         font-size: 0.8rem;
         font-weight: 600 !important;
-      }
+    }
 
       .avatar {
         img {
@@ -210,7 +231,7 @@ const Container = styled.div`
         color: white;
       }
     }
-    
+
     .received {
       justify-content: flex-start;
 

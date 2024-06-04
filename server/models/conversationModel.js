@@ -11,6 +11,11 @@ const conversationSchema = new mongoose.Schema(
             type: mongoose.Schema.Types.ObjectId,
             ref: "Message",
             default: [],
+        }],
+        ratings: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Rating",
+            default: [],
         }]
     },
     {

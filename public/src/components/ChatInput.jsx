@@ -3,54 +3,59 @@ import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoMdSend } from "react-icons/io";
 import styled from "styled-components";
 import Picker from "emoji-picker-react";
+import { FaStar } from "react-icons/fa6";
 
-export default function ChatInput({ handleSendMsg }) {
-    const [msg, setMsg] = useState('');
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-    const handleEmojiPickerhideShow = () => {
-        setShowEmojiPicker(!showEmojiPicker);
-    };
+export default function ChatInput({ handleSendMsg, openRatingModal }) {
+  const [msg, setMsg] = useState('');
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-    const sendChat = (event) => {
-        event.preventDefault();
-        if (msg.length > 0) {
-            handleSendMsg(msg);
-            setMsg("");
-        }
-    };
+  const handleEmojiPickerhideShow = () => {
+    setShowEmojiPicker(!showEmojiPicker);
+  };
 
-    return (
-        <Container>
-            <div className="button-container">
-                <div className="emoji">
-                    <BsEmojiSmileFill onClick={handleEmojiPickerhideShow} />
-                    {showEmojiPicker && <Picker className="picker-container"
-                                                height="300px"
-                                                skinTonesDisabled="true" 
-                                                searchDisabled="true"
-                                                previewConfig={{ showPreview: false }}
-                                                onEmojiClick={(emojiObject)=> setMsg((prevMsg)=> prevMsg + emojiObject.emoji)} />}
-                </div>
-            </div>
-            <form className="input-container" onSubmit={(event) => sendChat(event)}>
-                <input
-                    type="text"
-                    placeholder="Type your message here..."
-                    onChange={(e) => setMsg(e.target.value)}
-                    value={msg}
-                />
-                <button type="submit">
-                    <IoMdSend />
-                </button>
-            </form>
-        </Container>
-    );
+  const sendChat = (event) => {
+    event.preventDefault();
+    if (msg.length > 0) {
+      handleSendMsg(msg);
+      setMsg("");
+    }
+  };
+
+  return (
+    <Container>
+      <div className="button-container">
+        <div className="emoji">
+          <BsEmojiSmileFill onClick={handleEmojiPickerhideShow} />
+          {showEmojiPicker && <Picker className="picker-container"
+            height="300px"
+            skinTonesDisabled="true"
+            searchDisabled="true"
+            previewConfig={{ showPreview: false }}
+            onEmojiClick={(emojiObject) => setMsg((prevMsg) => prevMsg + emojiObject.emoji)} />}
+        </div>
+        <div className="emoji">
+          <FaStar onClick={openRatingModal} />
+        </div>
+      </div>
+      <form className="input-container" onSubmit={(event) => sendChat(event)}>
+        <input
+          type="text"
+          placeholder="Type your message here..."
+          onChange={(e) => setMsg(e.target.value)}
+          value={msg}
+        />
+        <button type="submit">
+          <IoMdSend />
+        </button>
+      </form>
+    </Container>
+  );
 }
 
 const Container = styled.div`
   display: grid;
   align-items: center;
-  grid-template-columns: 5% 95%;
+  grid-template-columns: 10% 90%;
   min-height: 100%;    
   margin: 0 0.5rem;
   padding: 0 2rem 2rem;
