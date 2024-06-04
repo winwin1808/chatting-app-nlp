@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import Logo from "../assets/logo_white.png";
 
 export default function Contacts({ contacts, changeChat }) {
   const [currentUserName, setCurrentUserName] = useState(undefined);
@@ -17,7 +16,6 @@ export default function Contacts({ contacts, changeChat }) {
           setCurrentUserImage(data.avatarImage);
         }
       } catch (error) {
-        // Handle error
         console.error('Error fetching data:', error);
       }
     };
@@ -34,10 +32,6 @@ export default function Contacts({ contacts, changeChat }) {
     <>
       {currentUserName && currentUserImage && (
         <Container>
-          <div className="brand">
-            <img src={Logo} alt="logo" />
-            <h3>Chatting</h3>
-          </div>
           <div className="contacts">
             {contacts.map((contact, index) => (
               <div
@@ -57,17 +51,6 @@ export default function Contacts({ contacts, changeChat }) {
               </div>
             ))}
           </div>
-          <div className="current-user">
-            <div className="avatar">
-              <img
-                src={`data:image/svg+xml;base64,${currentUserImage}`}
-                alt="avatar"
-              />
-            </div>
-            <div className="username">
-              <h3>{currentUserName}</h3>
-            </div>
-          </div>
         </Container>
       )}
     </>
@@ -76,25 +59,8 @@ export default function Contacts({ contacts, changeChat }) {
 
 const Container = styled.div`
   display: grid;
-  grid-template-rows: 15% 70% 15%;
+  grid-template-rows: 100%;
   overflow: hidden;
-  background-color: #B63E3E;
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    justify-content: center;
-
-    img {
-      height: 2rem;
-    }
-
-    h3 {
-      color: white;
-      text-transform: uppercase;
-    }
-  }
 
   .contacts {
     display: flex;
@@ -118,7 +84,7 @@ const Container = styled.div`
       min-height: 4rem;
       cursor: pointer;
       width: 90%;
-      border-radius: 0.3rem;
+      border-radius: 0.7rem;
       padding: 0.5rem;
       display: flex;
       gap: 1rem;
@@ -133,46 +99,16 @@ const Container = styled.div`
 
       .username {
         h3 {
-          font-size: 1.2rem;
-          color: white;
+          font-size: 1rem;
+          color: #00176B;
+          font-weight: 500 !important;
         }
       }
     }
 
     .selected {
-      background-color: #5F1D1D;
-    }
-  }
-
-  .current-user {
-    background-color: #B63E3E;
-    display: flex;
-    padding: 1.3rem;
-    align-items: center;
-    gap: 2rem;
-
-    .avatar {
-      img {
-        height: 3rem;
-        max-inline-size: 100%;
-      }
-    }
-
-    .username {
-      h3 {
-        font-size: 1.2rem;
-        color: white;
-      }
-    }
-
-    @media screen and (min-width: 720px) and (max-width: 1080px) {
-      gap: 0.5rem;
-
-      .username {
-        h3 {
-          font-size: 1rem;
-        }
-      }
+      background-color: #B63E3E;
+      .username {h3 {color: white; }}
     }
   }
 `;

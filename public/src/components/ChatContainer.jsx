@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import Logout from '../components/Logout';
 import ChatInput from '../components/ChatInput';
 import axios from 'axios';
 import { sendMessageRoute, receiveMessageRoute } from '../utils/ApiRoutes';
@@ -109,7 +108,6 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
               <h3>{currentChat.username}</h3>
             </div>
           </div>
-          <Logout />
         </div>
         <div className="chat-messages">
           {messages.map((msg) => (
@@ -212,7 +210,7 @@ const Container = styled.div`
         color: white;
       }
     }
-
+    
     .received {
       justify-content: flex-start;
 

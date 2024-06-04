@@ -1,0 +1,49 @@
+import React, { Suspense } from 'react';
+import { Outlet } from 'react-router-dom';
+import { createGlobalStyle, styled } from 'styled-components';
+import SidebarComponent from './components/Sidebar';
+import Footer from './components/Footer';
+
+const GlobalStyle = createGlobalStyle`
+  :root {
+    background-color: #770000; /* replace with your desired color */
+  }
+`;
+export default function MainLayout({ collapsed, handleCollapsedChange }) {
+    return (
+        <>
+            <GlobalStyle />
+            <Container>
+                <SidebarComponent
+                    collapsed={collapsed}
+                    handleCollapsedChange={handleCollapsedChange}
+                />
+                <MainContainer $collapsed={collapsed}>
+                    <main>
+                        <Suspense fallback={<div>Loading...</div>}>
+                            <Outlet />
+                        </Suspense>
+                    </main>
+                </MainContainer>
+            </Container>
+            <Footer />
+        </>
+    );
+}
+
+const Container = styled.div`
+  display: flex;
+  height: calc(100vh - 5rem); 
+  min-height: 320px;
+
+`;
+
+const MainContainer = styled.div`
+  flex-grow: 1;
+  transition: width 0.3s ease;
+  width: ${({ $collapsed }) => ($collapsed ? 'calc(100% - 80px)' : 'calc(100% - 250px)')};
+
+  main {
+    padding: 1rem;
+  }
+`;

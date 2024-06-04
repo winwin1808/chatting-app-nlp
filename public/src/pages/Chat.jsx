@@ -75,8 +75,8 @@ export default function Chat() {
 }
 
 const Container = styled.div`
-  height: 100vh;
-  width: 100vw;
+  ${'' /* height: 100vh;
+  width: 100vw; */}
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -85,14 +85,20 @@ const Container = styled.div`
   background-color: #770000;
 
   .container {
-    height: 85vh; 
-    width: 85vw;
+    height: calc(100vh - 5rem);
+    width: 80vw;
     background-color: #FFFFFF;
     display: grid;
     grid-template-columns: 25% 75%;
-    @media screen and (min-width: 720px) and (max-width: 1080px) {
-      border-radius: 0.6rem;
+    padding: 1rem;
+    border-radius: 0.7rem;
+    @media screen and (max-width: 1080px) {
       grid-template-columns: 35% 65%;
+      width: 100%;
+    }
+    @media screen and (max-width: 720px) {
+      margin-left: 0;
+      width: calc(100vw); // Full width on small screens
     }
   }
 `;
