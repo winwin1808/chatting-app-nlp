@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Modal from 'react-modal';
 import styled from 'styled-components';
 import { FaStar } from "react-icons/fa6";
+import { IoIosCloseCircleOutline } from "react-icons/io";
 
 Modal.setAppElement('#root'); // replace '#root' with the id of your app's root element
 
@@ -10,7 +11,7 @@ export default function RatingModal({ isOpen, onRequestClose, handleSubmit }) {
   const [content, setContent] = useState('');
 
   const handleRatingChange = (event) => {
-    setRating(event.target.value);
+    setRating(parseInt(event.target.value));
   };
 
   const handleContentChange = (event) => {
@@ -26,20 +27,31 @@ export default function RatingModal({ isOpen, onRequestClose, handleSubmit }) {
   return (
     <div>
       <StyledModal isOpen={isOpen} onRequestClose={onRequestClose}>
+        <CloseButton onClick={onRequestClose}><IoIosCloseCircleOutline size={24} /></CloseButton>
         <form onSubmit={onSubmit}>
-          <div className="rate" onChange={handleRatingChange}>
-            <input type="radio" id="star1" name="rate" value="1" />
-            <label htmlFor="star1" title="1 star"><FaStar /></label>
-            <input type="radio" id="star2" name="rate" value="2" />
-            <label htmlFor="star2" title="2 stars"><FaStar /></label>
-            <input type="radio" id="star3" name="rate" value="3" />
-            <label htmlFor="star3" title="3 stars"><FaStar /></label>
-            <input type="radio" id="star4" name="rate" value="4" />
-            <label htmlFor="star4" title="4 stars"><FaStar /></label>
-            <input type="radio" id="star5" name="rate" value="5" />
-            <label htmlFor="star5" title="5 stars"><FaStar /></label>
+          <Title style={{ fontSize: '1.2rem' }}>Rate Your Experience</Title>
+          <Description style={{ fontSize: '0.6rem' }}>Please provide a rating and a brief review of your experience.</Description>
+          <div className="rate">
+            {[...Array(5)].map((_, index) => {
+              const starValue = 5 - index; // Reverse the order
+              return (
+                <React.Fragment key={starValue}>
+                  <input 
+                    type="radio" 
+                    id={`star${starValue}`} 
+                    name="rate" 
+                    value={starValue} 
+                    checked={rating === starValue} 
+                    onChange={handleRatingChange} 
+                  />
+                  <label htmlFor={`star${starValue}`} title={`${starValue} stars`}>
+                    <FaStar />
+                  </label>
+                </React.Fragment>
+              );
+            })}
           </div>
-          <textarea
+          <StyledTextarea
             placeholder="Write your review..."
             value={content}
             onChange={handleContentChange}
@@ -47,7 +59,6 @@ export default function RatingModal({ isOpen, onRequestClose, handleSubmit }) {
           />
           <ButtonContainer>
             <StyledButton type="submit">Submit</StyledButton>
-            <StyledButton type="button" onClick={onRequestClose}>Close</StyledButton>
           </ButtonContainer>
         </form>
       </StyledModal>
@@ -64,13 +75,14 @@ const StyledModal = styled(Modal)`
   height: 500px;
   background: white;
   border-radius: 10px;
-  padding: 20px;
+  padding: 4rem 2rem 2rem 2rem;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-
+  font-family: "Be Vietnam Pro", sans-serif;
+  
   .rate {
     display: flex;
     justify-content: center;
-    margin-bottom: 20px;
+    margin-bottom: 0.5rem;
   }
   
   input[type="radio"] {
@@ -85,39 +97,77 @@ const StyledModal = styled(Modal)`
 
   input:checked ~ label {
     color: #ffc700;
-    top:-9999px;
   }
 
-  input:hover ~ label {
-    color: #deb217;
+  label:hover,
+  label:hover ~ label,
+  input:checked ~ label,
+  input:checked ~ label ~ label {
+    color: #ffc700;
   }
+`;
 
-  textarea {
-    width: 100%;
-    height: 100px;
-    margin-bottom: 20px;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    resize: none;
+const Title = styled.h2`
+  margin: 0;
+  margin-bottom: 1rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  text-align: center;
+`;
+
+const Description = styled.p`
+  margin: 0;
+  margin-bottom: 1.5rem;
+  font-family: "Be Vietnam Pro", sans-serif;
+  text-align: center;
+  color: #666;
+`;
+
+const StyledTextarea = styled.textarea`
+  width: 100%;
+  height: 100px;
+  margin-bottom: 20px;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #770000;
+  resize: none;
+  font-family: "Be Vietnam Pro", sans-serif;
+  outline: none;
+
+  &:focus {
+    border: 1px solid #770000;
+    outline: none;
   }
 `;
 
 const ButtonContainer = styled.div`
   display: flex;
-  justify-content: space-between;
+  justify-content: center; /* Center the button */
 `;
 
 const StyledButton = styled.button`
   padding: 10px 20px;
   border: none;
   border-radius: 5px;
-  background-color: #007bff;
+  background-color: #770000;
   color: white;
   cursor: pointer;
   transition: background-color 0.3s;
+  font-family: "Be Vietnam Pro", sans-serif;
 
   &:hover {
-    background-color: #0056b3;
+    background-color: #B63E3E;
   }
+`;
+
+const CloseButton = styled.button`
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 `;
