@@ -7,11 +7,11 @@ export const register = async (req, res, next) => {
         const { username, email, password } = req.body;
         const usernameCheck = await User.findOne({ username });
         if (usernameCheck) {
-            return res.status(400).json({ message: "Username already used" });
+            return res.status(200).json({ status: 400, message: "Username already used" });
         }
         const emailCheck = await User.findOne({ email });
         if (emailCheck) {
-            return res.status(400).json({ message: "Email already used" });
+            return res.status(200).json({ status: 400, message: "Email already used" });
         }
         const encrypted = await bcrypt.hash(password, 10);
         const newUser = await User.create({
@@ -24,7 +24,7 @@ export const register = async (req, res, next) => {
         
         if (newUser) {
             const token = generateToken(newUser._id);
-            return res.status(200).json({ message: "User registered successfully.", user: userData, token });
+            return res.status(200).json({ status: 200, message: "User registered successfully.", user: userData, token });
         }
     } catch (err) {
         next(err);
@@ -37,25 +37,25 @@ export const login = async (req, res, next) => {
         const userCount = await User.countDocuments();
 
         if (userCount === 0) {
-            return res.status(400).json({ message: "Please create an account" });
+            return res.status(200).json({ status: 400, message: "Please create an account" });
         }
 
         const usernameCheck = await User.findOne({ username });
         if (!usernameCheck) {
-            return res.status(400).json({ message: "Incorrect username or password" });
+            return res.status(200).json({ status: 400, message: "Incorrect username or password" });
         }
 
         const passwordCheck = await bcrypt.compare(password, usernameCheck.password);
 
         if (!passwordCheck) {
-            return res.status(400).json({ message: "Incorrect username or password" });
+            return res.status(200).json({ status: 400, message: "Incorrect username or password" });
         }
 
         const userData = usernameCheck.toObject();
         delete userData.password;
 
         const token = generateToken(usernameCheck._id);
-        return res.status(200).json({ message: userData, token });
+        return res.status(200).json({ status: 200, message: userData, token });
     } catch (err) {
         next(err);
     }
@@ -63,8 +63,8 @@ export const login = async (req, res, next) => {
 
 export const logOut = (req, res, next) => {
     try {
-        if (!req.params.id) return res.status(404).json({ message: "User id is required" });
-        return res.status(200).json({ message: "User logged out successfully." });
+        if (!req.params.id) return res.status(200).json({ status: 400, message: "User id is required" });
+        return res.status(200).json({ status: 200, message: "User logged out successfully." });
     } catch (ex) {
         next(ex);
     }

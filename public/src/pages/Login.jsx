@@ -40,10 +40,12 @@ function Login() {
   
         const data = response.data;
   
-        if (response.status === 200) {
+        if (data.status === 200) {
           localStorage.setItem('register-user', JSON.stringify(data.message));
           localStorage.setItem('jwt', data.token);
           navigate('/');
+        } else {
+          toast.error(data.message, toastOptions);
         }
       } catch (error) {
         if (error.response && error.response.status === 400) {
@@ -106,7 +108,6 @@ const FormContainer = styled.div`
   width: 100vw;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 1rem;
   align-items: center;
   background-color: #ffffff;
@@ -117,7 +118,7 @@ const FormContainer = styled.div`
     gap: 1rem;
     justify-content: center;
     img {
-      height: 5rem;
+      height: 4rem;
     }
     h1 {
       color: #00176B;
@@ -128,11 +129,10 @@ const FormContainer = styled.div`
   form {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
     border-radius: 2rem;
-    flex-wrap: wrap;
     background-color: #FFFFFF;
-    padding: 3rem 5rem;
+    padding: 3rem 1rem;
   }
 
   input {

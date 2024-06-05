@@ -32,20 +32,32 @@ function Register() {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if(handleValidation()) {
+    if (handleValidation()) {
       const { email, username, password } = values;
-      const { data } = await axios.post(registerRoute, {
-        username,
-        email,
-        password,
-      });
-      if (data.status === 400) {
-        toast.error(data.message, toastOptions);
-      }
-      if (data.status === 200) {
-        localStorage.setItem('register-user', JSON.stringify(data.user));
-        localStorage.setItem('jwt', data.token);  
-        navigate('/');
+      try {
+        const { data } = await axios.post(registerRoute, {
+          username,
+          email,
+          password,
+        });
+        console.log(data); // Debugging log
+
+        if (data.status === 400) {
+          toast.error(data.message, toastOptions);
+        } else if (data.status === 200) {
+          localStorage.setItem('register-user', JSON.stringify(data.user));
+          localStorage.setItem('jwt', data.token);  
+          navigate('/');
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 400) {
+          // Handling specific server response for status 400
+          toast.error(error.response.data.message, toastOptions);
+        } else {
+          // General error handling
+          toast.error("An error occurred during registration.", toastOptions);
+        }
+        console.error(error); // Debugging log
       }
     }
   };
@@ -54,7 +66,7 @@ function Register() {
     const { password, confirmPassword, username, email } = values;
     if (password !== confirmPassword) {
       toast.error(
-        "Password and Confirm Password should be same.",
+        "Password and Confirm Password should be the same.",
         toastOptions
       );
       return false;
@@ -81,6 +93,7 @@ function Register() {
   const handleChange = (event) => {
     setValues({ ...values, [event.target.name]: event.target.value });
   };
+
   return (
     <>
       <FormContainer>
@@ -114,9 +127,7 @@ function Register() {
 
           <button type='submit'>Create User</button>
 
-          <span>Already have account? <Link to="/login">Login</Link>
-
-          </span>
+          <span>Already have an account? <Link to="/login">Login</Link></span>
         </form>
       </FormContainer>
       <ToastContainer />
@@ -129,7 +140,6 @@ const FormContainer = styled.div`
   width: 100vw;
   display: flex;
   flex-direction: column;
-  ${'' /* justify-content: center; */}
   gap: 1rem;
   align-items: center;
   background-color: #ffffff;
@@ -153,7 +163,6 @@ const FormContainer = styled.div`
     flex-direction: column;
     gap: 1.5rem;
     border-radius: 2rem;
-    flex-wrap: wrap;
     background-color: #FFFFFF;
     padding: 3rem 1rem;
   }
@@ -178,7 +187,6 @@ const FormContainer = styled.div`
     padding: 1rem 2rem;
     border: none;
     font-weight: bold;
-    
     cursor: pointer;
     border-radius: 0.3rem;
     font-size: 1rem;
