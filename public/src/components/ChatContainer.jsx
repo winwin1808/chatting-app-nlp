@@ -3,14 +3,13 @@ import styled from 'styled-components';
 import ChatInput from '../components/ChatInput';
 import RatingModal from '../components/Rating';
 import axios from 'axios';
-import { sendMessageRoute, receiveMessageRoute, sendRatingRoute } from '../utils/ApiRoutes';
+import { sendMessageRoute, receiveMessageRoute, sendRatingRoute, getRatingRoute } from '../utils/ApiRoutes';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
-  const [ratingModalOpen, setRatingModalOpen] = useState(false);
-
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const scrollRef = useRef();
 
   useEffect(() => {
@@ -18,7 +17,7 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       if (currentUser && currentChat) {
         try {
           const token = localStorage.getItem('jwt');
-          const response = await axios.post(
+          const messageResponse = await axios.post(
             `${receiveMessageRoute}/${currentChat._id}`,
             null,
             {
@@ -27,14 +26,30 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
               },
             }
           );
-          const mappedMessages = response.data.map((message) => ({
+          const mappedMessages = messageResponse.data.map((message) => ({
             ...message,
             fromSelf: currentUser._id === message.sender,
           }));
+          
 
-          setMessages(mappedMessages);
+          const ratingResponse = await axios.post(
+            `${getRatingRoute}/${currentChat._id}`,
+            null,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const mappedRatings = ratingResponse.data.map((rating) => ({
+            ...rating,
+            fromSelf: currentUser._id === rating.sender,
+            message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
+          }));
+          
+          setMessages([...mappedMessages, ...mappedRatings])
         } catch (error) {
-          console.error('Error fetching messages:', error);
+          console.error('Error fetching data:', error);
         }
       }
     }
@@ -49,8 +64,18 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
           fromSelf: false,
         });
       });
+      socket.on('newRating', (rating) => {
+        setArrivalMessage({
+          ...rating,
+          fromSelf: false,
+          message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
+        });
+      });
 
-      return () => socket.off('newMessage');
+      return () => {
+        socket.off('newMessage');
+        socket.off('newRating');
+      };
     }
   }, [socket]);
 
@@ -90,20 +115,43 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     }
   }
 
-  async function handleSendRating(rating, content) {
+  async function handleSendRatingRequest() {
+    await handleSendMsg("RATING_REQUEST");
+  }
+
+  const handleRatingSubmit = async (rating, content) => {
     try {
       const token = localStorage.getItem('jwt');
-      const response = await axios.post(`${sendRatingRoute}/${currentChat._id}`, 
-      { star: rating, content: content }, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await axios.post(
+        `${sendRatingRoute}/${currentChat._id}`,
+        { star: rating, content: content },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const ratingMessage = {
+        message: `Rating: ${rating} stars, Review: ${content}`,
+        sender: currentUser._id,
+        receiver: currentChat._id,
+        fromSelf: true,
+      };
+
+      setMessages((prevMessages) => [...prevMessages, ratingMessage]);
+
+      if (socket) {
+        socket.emit('send-rating', ratingMessage);
+      }
+
       console.log('Rating submitted: ', response.data);
     } catch (error) {
       console.error('Error submitting rating: ', error);
     }
-  }
+
+    setIsRatingModalOpen(false);
+  };
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -111,43 +159,76 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     }
   }, [messages]);
 
-  if (currentChat !== undefined) {
-    return (
-      <Container>
-        <div className="chat-header">
-          <div className="user-details">
-            <div className="avatar">
-              <img
-                src={`data:image/svg+xml;base64,${currentChat.avatarImage}`}
-                alt=""
-              />
-            </div>
-            <div className="username">
-              <h3>{currentChat.username}</h3>
-            </div>
+  return currentChat !== undefined ? (
+    <Container>
+      <div className="chat-header">
+        <div className="user-details">
+          <div className="avatar">
+            <img
+              src={`data:image/svg+xml;base64,${currentChat.avatarImage}`}
+              alt=""
+            />
+          </div>
+          <div className="username">
+            <h3>{currentChat.username}</h3>
           </div>
         </div>
-        <div className="chat-messages">
-          {messages.map((msg) => (
-            <div ref={scrollRef} key={uuidv4()}>
+      </div>
+      <div className="chat-messages">
+        {messages.map((msg) => (
+          <div ref={scrollRef} key={uuidv4()}>
+            {msg.message === "RATING_REQUEST" ? (
+              <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
+                <div className="content">
+                  <StyledButton
+                    onClick={() => setIsRatingModalOpen(true)}
+                    disabled={msg.fromSelf}
+                  >
+                    {msg.fromSelf ? 'Rating sent' : 'Rating here!'}
+                  </StyledButton>
+                </div>
+              </div>
+            ) : (
               <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
                 <div className="content">
                   <p>{msg.message}</p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-        <ChatInput handleSendMsg={handleSendMsg} 
-        openRatingModal={() => setRatingModalOpen(true)} />
-        <RatingModal isOpen={ratingModalOpen} 
-        onRequestClose={() => setRatingModalOpen(false)} handleSubmit={handleSendRating} />
-      </Container>
-    );
+            )}
+          </div>
+        ))}
+      </div>
+      <ChatInput handleSendMsg={handleSendMsg} openRatingModal={handleSendRatingRequest} />
+      <RatingModal
+        isOpen={isRatingModalOpen}
+        onRequestClose={() => setIsRatingModalOpen(false)}
+        handleSubmit={handleRatingSubmit}
+      />
+    </Container>
+  ) : null;
+}
+
+const StyledButton = styled.button`
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.25rem; /* Match the normal message border radius */
+  background-color: #770000; /* Match the normal message background color for sent messages */
+  color: white; /* Match the normal message text color */
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s; /* Smooth transition for hover effects */
+  font-family: "Be Vietnam Pro", sans-serif;
+  font-size: 0.8rem;
+
+  &:hover {
+    background-color: #ff7290; /* Slightly darker shade for hover effect */
   }
 
-  return null;
-}
+  &:disabled {
+    background-color: #770000; /* Keep the same background color when disabled */
+    color: #e0e0e0; /* Change text color to indicate disabled state */
+    cursor: not-allowed; /* Change cursor to not-allowed when disabled */
+  }
+`;
 
 const Container = styled.div`
   display: grid;
@@ -178,7 +259,7 @@ const Container = styled.div`
         color: #00176b;
         font-size: 0.8rem;
         font-weight: 600 !important;
-    }
+      }
 
       .avatar {
         img {
@@ -201,7 +282,7 @@ const Container = styled.div`
       &-thumb {
         background-color: #ffffff39;
         width: 0.1rem;
-        border-radius: 1rem;
+        border-radius: 0.5rem;
       }
     }
 
@@ -214,7 +295,7 @@ const Container = styled.div`
         overflow-wrap: break-word;
         padding: 0.5rem;
         font-size: 0.8rem;
-        border-radius: 3rem;
+        border-radius: 0.25rem;
         color: #000000;
 
         @media screen and (min-width: 720px) and (max-width: 1080px) {
@@ -227,11 +308,11 @@ const Container = styled.div`
       justify-content: flex-end;
 
       .content {
-        background-color: #ff9ab2;
+        background-color: #770000;
         color: white;
       }
     }
-
+    
     .received {
       justify-content: flex-start;
 
@@ -242,3 +323,4 @@ const Container = styled.div`
     }
   }
 `;
+

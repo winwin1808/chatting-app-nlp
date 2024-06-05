@@ -6,5 +6,6 @@ export const allUsersRoute = `${host}/api/user/allusers`;
 export const sendMessageRoute = `${host}/api/messages/sendMessage`;
 export const receiveMessageRoute = `${host}/api/messages/getMessage`;
 export const sendRatingRoute = `${host}/api/messages/sendRating`;
-export const getRatingRoute = `${host}/api/messages/getRatings`;
+export const getRatingRoute = `${host}/api/messages/getRating`;
+export const sendRatingRequestRoute = `${host}/api/messages/sendRatingRequest`;
 export const setAvatarRoute = `${host}/api/user/setavatar`;

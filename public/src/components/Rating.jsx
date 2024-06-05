@@ -33,7 +33,7 @@ export default function RatingModal({ isOpen, onRequestClose, handleSubmit }) {
           <Description style={{ fontSize: '0.6rem' }}>Please provide a rating and a brief review of your experience.</Description>
           <div className="rate">
             {[...Array(5)].map((_, index) => {
-              const starValue = index + 1;
+              const starValue = 5 - index;
               return (
                 <React.Fragment key={starValue}>
                   <input 

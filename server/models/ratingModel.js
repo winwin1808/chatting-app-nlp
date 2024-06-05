@@ -5,21 +5,21 @@ const ratingSchema = new mongoose.Schema(
         star: {
             type: Number,
             required: true
-        },
-        content: {
+          },
+          content: {
             type: String,
             default: ''
-        },
-        receiver: {
+          },
+          receiver: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
-        },
-        sender: {
+          },
+          sender: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
-        }
+          }
     },
     {
         timestamps: true,
