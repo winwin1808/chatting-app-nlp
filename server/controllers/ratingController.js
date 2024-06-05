@@ -1,10 +1,10 @@
-import Messages from '../models/messageModel.js';
+import Ratings from '../models/ratingModel.js';
 import Conversations from '../models/conversationModel.js';
 import { getReceiverSocketId, io } from "../config/socket.js";
 
-export const sendMsg = async (req, res, next) => {
+export const sendRating = async (req, res, next) => {
     try {
-        const { message } = req.body;
+        const { star,content } = req.body;
         const { id: receiver } = req.params;
         const sender = req.user._id;
 
@@ -19,55 +19,55 @@ export const sendMsg = async (req, res, next) => {
             });
         }
 
-        // Create a new message
-        const newMessage = new Messages({
-            message,
-            sender,
+        // Create a new rating
+        const newRating = new Ratings({
+            star,
+            content,
             receiver,
+            sender
         });
 
-        if (newMessage) {
-            conversation.messages.push(newMessage._id);
+        if (newRating) {
+            conversation.ratings.push(newRating._id);
         }
-
-        // Save the conversation and message
-        await Promise.all([conversation.save(), newMessage.save()]);
+        
+        // Save the conversation and rating
+        await Promise.all([conversation.save(), newRating.save()]);
+        
         // Get the receiver's socket ID
         const receiverSocketId = getReceiverSocketId(receiver);
         if (receiverSocketId) {
-            // Emit the new message to the receiver if they are connected
-            io.to(receiverSocketId).emit("newMessage", newMessage);
-            console.log("Message sent to receiver", receiverSocketId);
+            // Emit the new rating to the receiver if they are connected
+            io.to(receiverSocketId).emit("newRating", newRating);
+            console.log("Rating sent to receiver", receiverSocketId);
         }
-
+        
         // Send the response back to the client
-        res.status(201).json(newMessage);
+        res.status(201).json(newRating);
     } catch (error) {
-        console.log("Error in sendMsg controller: ", error.message);
+        console.error("Error in sendRating controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };
 
-export const getAllMsg = async (req, res, next) => {
+export const getRatings = async (req, res, next) => {
     try {
         const { id: userToChatId } = req.params;
         const sender = req.user._id;
 
-        // Fetch the conversation and populate messages
+        // Fetch the conversation and populate ratings
         const conversation = await Conversations.findOne({
             participants: { $all: [sender, userToChatId] },
-        }).populate("messages");
+        }).populate("ratings");
 
         if (!conversation) return res.status(200).json([]);
 
-        const messages = conversation.messages;
+        const ratings = conversation.ratings;
 
-        // Send the messages back to the client
-        res.status(200).json(messages);
+        // Send the ratings back to the client
+        res.status(200).json(ratings);
     } catch (error) {
-        console.log("Error in getAllMsg controller: ", error.message);
+        console.error("Error in getRatings controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 };
-
-

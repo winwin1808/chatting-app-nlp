@@ -20,8 +20,13 @@ export default function Chat() {
     const fetchUser = async () => {
       let user = localStorage.getItem('register-user');
       if (user && user !== 'undefined') {
-        setCurrentUser(JSON.parse(user));
-        setIsLoaded(true);
+        user = JSON.parse(user);
+        if (user._id) {
+          setCurrentUser(user);
+          setIsLoaded(true);
+        } else {
+          navigate('/login');
+        }
       } else {
         navigate('/login');
       }
@@ -32,7 +37,7 @@ export default function Chat() {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (currentUser) {
+      if (currentUser && currentUser._id) {
         if (currentUser.isAvatarImageSet) {
           try {
             const token = localStorage.getItem('jwt');
@@ -60,23 +65,23 @@ export default function Chat() {
 
   return (
     <>
-      <Container>
-        <div className="container">
-          <Contacts contacts={contacts} changeChat={handleChatChange} />
-          {isLoaded && currentChat === undefined ? (
-            <Welcome currentUser={currentUser} />
-          ) : (
-            <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} />
-          )}
-        </div>
-      </Container>
+      {currentUser && currentUser._id ? (
+        <Container>
+          <div className="container">
+            <Contacts contacts={contacts} changeChat={handleChatChange} />
+            {isLoaded && currentChat === undefined ? (
+              <Welcome currentUser={currentUser} />
+            ) : (
+              <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} />
+            )}
+          </div>
+        </Container>
+      ) : null}
     </>
   );
 }
 
 const Container = styled.div`
-  ${'' /* height: 100vh;
-  width: 100vw; */}
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -98,7 +103,7 @@ const Container = styled.div`
     }
     @media screen and (max-width: 720px) {
       margin-left: 0;
-      width: calc(100vw); // Full width on small screens
+      width: calc(100vw);
     }
   }
 `;
