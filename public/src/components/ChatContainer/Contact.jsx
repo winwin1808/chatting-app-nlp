@@ -1,18 +1,17 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { CiSearch } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
 import { useSocketContext } from "../../context/socket";
 
 export default function Contacts({ contacts, changeChat }) {
-  console.log(111,contacts)
   const { onlineUsers } = useSocketContext();
   const [currentUserName, setCurrentUserName] = useState(undefined);
   const [currentUserImage, setCurrentUserImage] = useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const inputRef = useRef(null);
+
 
   useEffect(() => {
     const fetchData = async () => {
@@ -31,6 +30,11 @@ export default function Contacts({ contacts, changeChat }) {
     fetchData();
   }, []);
 
+  const closeSearch = () => {
+    setSearchTerm("");
+    setIsFocused(false);
+  };
+
   const changeCurrentChat = (index, contact) => {
     setCurrentSelected(index);
     changeChat(contact);
@@ -43,35 +47,25 @@ export default function Contacts({ contacts, changeChat }) {
   const isOnline = (contact) => {
     return onlineUsers.includes(contact._id);
   };
-  console.log("onlineUsers",onlineUsers)
-  console.log("contacts",contacts)
-  console.log("isOnline",isOnline)
-  return (  
+
+  return (
     <>
       {currentUserName && currentUserImage && (
         <Container>
           <div className="search-bar">
             <input
-              ref={inputRef}
               type="text"
               placeholder="Search contacts..."
               value={searchTerm}
               onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {isFocused ? (
               <IoCloseOutline 
-                onClick={() => {
-                  setSearchTerm("");
-                  setIsFocused(false);
-                  inputRef.current.blur();
-                }} 
+                onClick={closeSearch} 
               />
             ) : (
-              <CiSearch 
-                onClick={() => inputRef.current.focus()} 
-              />
+              <CiSearch/>
             )}
           </div>
           <div className="contacts">
@@ -117,7 +111,7 @@ const Container = styled.div`
 
   .search-bar {
     display: flex;
-    padding: 0.5rem;
+    padding: 1rem 1rem 1rem 2rem;
     input {
       width: 80%;
       padding: 0.5rem;
