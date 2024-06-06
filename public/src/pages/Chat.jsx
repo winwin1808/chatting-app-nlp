@@ -3,9 +3,9 @@ import styled from 'styled-components';
 import axios from 'axios';
 import { useNavigate } from "react-router-dom";
 import { allUsersRoute } from "../utils/ApiRoutes";
-import Contacts from "../components/Contact";
-import Welcome from "../components/Welcome";
-import ChatContainer from "../components/ChatContainer";
+import Contacts from "../components/ChatContainer/Contact";
+import Welcome from "../components/ChatContainer/Welcome";
+import ChatContainer from "../components/ChatContainer/ChatContainer";
 import { useSocketContext } from '../context/socket';
 
 export default function Chat() {

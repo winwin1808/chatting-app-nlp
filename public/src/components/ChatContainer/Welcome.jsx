@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
-import welcomeImage from "../assets/welcome.png";
+import welcomeImage from "../../assets/welcome.png";
 export default function Welcome() {
   const [userName, setUserName] = useState("");
   useEffect(() => {

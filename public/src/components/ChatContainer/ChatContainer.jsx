@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
-import ChatInput from '../components/ChatInput';
-import RatingModal from '../components/Rating';
+import ChatInput from './ChatInput';
+import RatingModal from './Rating';
 import axios from 'axios';
-import { sendMessageRoute, receiveMessageRoute, sendRatingRoute, getRatingRoute } from '../utils/ApiRoutes';
+import { sendMessageRoute, receiveMessageRoute, sendRatingRoute, getRatingRoute } from '../../utils/ApiRoutes';
 import { v4 as uuidv4 } from 'uuid';
 
 export default function ChatContainer({ currentChat, currentUser, socket }) {
