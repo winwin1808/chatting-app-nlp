@@ -86,33 +86,48 @@ export default function Dashboard() {
 
   return (
     <Container>
-      <div className="summary-container">
-        <SummaryBox>
-          <h3>Total Ratings</h3>
-          <p>{ratings.reduce((acc, rating) => acc + rating.count, 0)}</p>
-        </SummaryBox>
-        <SummaryBox>
-          <h3>Online Users</h3>
-          <p>{onlineUsers.length}</p>
-        </SummaryBox>
-        <SummaryBox>
-          <h3>Conversations</h3>
-          <p>{conversations.length}</p>
-        </SummaryBox>
-      </div>
-      <div className="chart-container">
-        <div className="chart">
-          <h3>Number of Ratings</h3>
-          <Bar data={ratingsData} />
-        </div>
-        <div className="chart">
-          <h3>Online Users</h3>
-          <Pie data={onlineUsersData} />
-        </div>
-        <div className="chart">
-          <h3>Conversations</h3>
-          <Bar data={conversationsData} />
-        </div>
+      <div className="container">
+        <SummaryContainer>
+          <SummaryBox>
+            <h3>Total Ratings</h3>
+            <p>{ratings.reduce((acc, rating) => acc + rating.count, 0)}</p>
+          </SummaryBox>
+          <SummaryBox>
+            <h3>Online Users</h3>
+            <p>{onlineUsers.length}</p>
+          </SummaryBox>
+          <SummaryBox>
+            <h3>Conversations</h3>
+            <p>{conversations.length}</p>
+          </SummaryBox>
+        </SummaryContainer>
+        <ChartContainer>
+          <div className="chart">
+            <h3>Number of Ratings</h3>
+            <Bar data={ratingsData} />
+          </div>
+          <div className="chart">
+            <h3>Number of Ratings</h3>
+            <Bar data={ratingsData} />
+          </div>
+          <div className="chart">
+            <h3>Number of Ratings</h3>
+            <Bar data={ratingsData} />
+          </div>
+          <div className="chart">
+            <h3>Online Users</h3>
+            <Pie data={onlineUsersData} />
+          </div>
+          <div className="chart">
+            <h3>Conversations</h3>
+            <Bar data={conversationsData} />
+          </div>
+          <div className="chart">
+            <h3>Conversations</h3>
+            <Bar data={conversationsData} />
+          </div>
+        </ChartContainer>
+        
       </div>
     </Container>
   );
@@ -122,39 +137,45 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 1rem;
   align-items: center;
   background-color: #770000;
-  padding:  rem;
-  
-  .summary-container {
-    display: flex;
-    justify-content: space-between;
-    width: 100%;
-    gap: 1rem;
 
-    @media screen and (max-width: 720px) {
-      flex-direction: column;
-      align-items: center;
-    }
-  }
 
-  .chart-container {
+  .container {
+    height: calc(100vh - 5rem);
+    width: 80vw;
+    background-color: #FFFFFF;
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 1rem;
-    width: 100%;
-
-    @media screen and (max-width: 1080px) {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .chart {
-    background-color: #fff;
+    grid-template-columns: 1fr;
     padding: 1rem;
     border-radius: 0.7rem;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    gap: 1rem;
+    @media screen and (max-width: 1080px) {
+      width: 100%;
+    }
+    @media screen and (max-width: 720px) {
+      width: calc(100vw - 2rem);
+    }
+  }
+`;
+
+const SummaryContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  @media screen and (max-width: 720px) {
+    flex-direction: column;
+    align-items: center;
+  }
+`;
+
+const ChartContainer = styled.div`
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+  @media screen and (max-width: 1080px) {
+    grid-template-columns: 1fr;
   }
 `;
 
@@ -165,7 +186,7 @@ const SummaryBox = styled.div`
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   text-align: center;
   flex: 1;
-
+  max-height: 8rem;
   h3 {
     margin-bottom: 1rem;
   }
