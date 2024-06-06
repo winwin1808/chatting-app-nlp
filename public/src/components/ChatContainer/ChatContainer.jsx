@@ -5,6 +5,7 @@ import RatingModal from './Rating';
 import axios from 'axios';
 import { sendMessageRoute, receiveMessageRoute, sendRatingRoute, getRatingRoute } from '../../utils/ApiRoutes';
 import { v4 as uuidv4 } from 'uuid';
+import moment from 'moment';
 
 export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
@@ -22,18 +23,26 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
             axios.post(`${getRatingRoute}/${currentChat._id}`, null, { headers: { Authorization: `Bearer ${token}` } })
           ]);
 
+
           const mappedMessages = messageResponse.data.map((message) => ({
             ...message,
             fromSelf: currentUser._id === message.sender,
+            time: moment(message.createdAt).format('LT'),
           }));
 
           const mappedRatings = ratingResponse.data.map((rating) => ({
             ...rating,
             fromSelf: currentUser._id === rating.sender,
             message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
+            time: moment(rating.createdAt).format('LT'),
           }));
 
-          setMessages([...mappedMessages, ...mappedRatings]);
+          const combinedData = [...mappedMessages, ...mappedRatings];
+
+          combinedData.sort((a, b) => moment(a.createdAt).diff(moment(b.createdAt)));
+
+          setMessages(combinedData);
+
         } catch (error) {
           console.error('Error fetching data:', error);
         }
@@ -44,11 +53,12 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
 
   useEffect(() => {
     if (socket) {
-      const handleNewMessage = (msg) => setArrivalMessage({ ...msg, fromSelf: false });
+      const handleNewMessage = (msg) => setArrivalMessage({ ...msg, fromSelf: false, time: moment(msg.createdAt).format('LT') });
       const handleNewRating = (rating) => setArrivalMessage({
         ...rating,
         fromSelf: false,
         message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
+        time: moment(rating.createdAt).format('LT'),
       });
 
       socket.on('newMessage', handleNewMessage);
@@ -76,7 +86,7 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
         socket.emit('send-msg', { receiver: currentChat._id, sender: currentUser._id, message: msg });
       }
 
-      setMessages((prevMessages) => [...prevMessages, { fromSelf: true, message: msg }]);
+      setMessages((prevMessages) => [...prevMessages, { fromSelf: true, message: msg, time: moment().format('LT') }]);
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -94,6 +104,7 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
         sender: currentUser._id,
         receiver: currentChat._id,
         fromSelf: true,
+        time: moment().format('LT'),
       };
 
       setMessages((prevMessages) => [...prevMessages, ratingMessage]);
@@ -134,12 +145,15 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
                   <StyledButton onClick={() => setIsRatingModalOpen(true)} disabled={msg.fromSelf}>
                     {msg.fromSelf ? 'Rating sent' : 'Rating here!'}
                   </StyledButton>
+                  <div className="time">{msg.time}</div>
                 </div>
               </div>
             ) : (
               <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
+                
                 <div className="content">
                   <p>{msg.message}</p>
+                  <div className="time">{msg.time}</div>
                 </div>
               </div>
             )}
@@ -152,13 +166,12 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
   ) : null;
 }
 
-
 const StyledButton = styled.button`
   padding: 0.5rem;
   border: none;
-  border-radius: 0.25rem; /* Match the normal message border radius */
-  background-color: #770000; /* Match the normal message background color for sent messages */
-  color: white; /* Match the normal message text color */
+  border-radius: 0.25rem;
+  background-color: #770000;
+  color: white;
   cursor: pointer;
   transition: background-color 0.3s, color 0.3s;
   font-family: "Be Vietnam Pro", sans-serif;
@@ -169,7 +182,7 @@ const StyledButton = styled.button`
   }
 
   &:disabled {
-    background-color: #770000; /* Keep the same background color when disabled */
+    background-color: #770000;
     color: #e0e0e0;
     cursor: not-allowed;
   }
@@ -234,7 +247,11 @@ const Container = styled.div`
     .message {
       display: flex;
       align-items: center;
-
+      .time {
+          font-size: 0.6rem;
+          color: #888;
+          padding-top: 0.3rem;
+        }
       .content {
         max-width: 40%;
         overflow-wrap: break-word;
@@ -242,6 +259,7 @@ const Container = styled.div`
         font-size: 0.8rem;
         border-radius: 0.25rem;
         color: #000000;
+        position: relative;
 
         @media screen and (min-width: 720px) and (max-width: 1080px) {
           max-width: 70%;
@@ -251,16 +269,18 @@ const Container = styled.div`
 
     .sended {
       justify-content: flex-end;
-
+      
       .content {
         background-color: #770000;
         color: white;
+        .time {
+          justify-content: flex-end;
+        }
       }
     }
     
     .received {
       justify-content: flex-start;
-
       .content {
         background-color: #eeeee4;
         color: black;
@@ -268,4 +288,3 @@ const Container = styled.div`
     }
   }
 `;
-

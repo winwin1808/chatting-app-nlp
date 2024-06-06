@@ -1,10 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styled from "styled-components";
+import { CiSearch } from "react-icons/ci";
+import { IoCloseOutline } from "react-icons/io5";
+import { useSocketContext } from "../../context/socket";
 
 export default function Contacts({ contacts, changeChat }) {
+  console.log(111,contacts)
+  const { onlineUsers } = useSocketContext();
   const [currentUserName, setCurrentUserName] = useState(undefined);
   const [currentUserImage, setCurrentUserImage] = useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -28,12 +36,46 @@ export default function Contacts({ contacts, changeChat }) {
     changeChat(contact);
   };
 
-  return (
+  const filteredContacts = contacts.filter(contact =>
+    contact.username.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const isOnline = (contact) => {
+    return onlineUsers.includes(contact._id);
+  };
+  console.log("onlineUsers",onlineUsers)
+  console.log("contacts",contacts)
+  console.log("isOnline",isOnline)
+  return (  
     <>
       {currentUserName && currentUserImage && (
         <Container>
+          <div className="search-bar">
+            <input
+              ref={inputRef}
+              type="text"
+              placeholder="Search contacts..."
+              value={searchTerm}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {isFocused ? (
+              <IoCloseOutline 
+                onClick={() => {
+                  setSearchTerm("");
+                  setIsFocused(false);
+                  inputRef.current.blur();
+                }} 
+              />
+            ) : (
+              <CiSearch 
+                onClick={() => inputRef.current.focus()} 
+              />
+            )}
+          </div>
           <div className="contacts">
-            {contacts.map((contact, index) => (
+            {filteredContacts.map((contact, index) => (
               <div
                 key={contact._id}
                 className={`contact ${index === currentSelected ? "selected" : ""}`}
@@ -44,6 +86,7 @@ export default function Contacts({ contacts, changeChat }) {
                     src={`data:image/svg+xml;base64,${contact.avatarImage}`}
                     alt=""
                   />
+                  {isOnline(contact) && <OnlineIndicator />}
                 </div>
                 <div className="username">
                   <h3>{contact.username}</h3>
@@ -57,10 +100,37 @@ export default function Contacts({ contacts, changeChat }) {
   );
 }
 
+const OnlineIndicator = styled.div`
+  width: 0.7rem;
+  height: 0.7rem;
+  background-color: green;
+  border-radius: 50%;
+  position: absolute;
+  top: 0;
+  right: 0;
+`;
+
 const Container = styled.div`
   display: grid;
-  grid-template-rows: 100%;
+  grid-template-rows: auto 1fr;
   overflow: hidden;
+
+  .search-bar {
+    display: flex;
+    padding: 0.5rem;
+    input {
+      width: 80%;
+      padding: 0.5rem;
+      border-radius: 0.5rem;
+      border: 1px solid #ccc;
+    }
+    svg {
+      align-self: center;
+      font-size: 2rem;
+      padding-left: 0.5rem;
+      cursor: pointer;
+    }
+  }
 
   .contacts {
     display: flex;
@@ -90,8 +160,10 @@ const Container = styled.div`
       gap: 1rem;
       align-items: center;
       transition: 0.5s ease-in-out;
+      position: relative;
 
       .avatar {
+        position: relative;
         img {
           height: 3rem;
         }
@@ -108,7 +180,11 @@ const Container = styled.div`
 
     .selected {
       background-color: #B63E3E;
-      .username {h3 {color: white; }}
+      .username {
+        h3 {
+          color: white;
+        }
+      }
     }
   }
 `;

@@ -20,6 +20,8 @@ export default function App() {
       <Routes>
         <Route element={<MainLayout collapsed={collapsed} handleCollapsedChange={handleCollapsedChange} />}>
           <Route path="/" element={<Chat />} />
+          <Route path="/dashboard" element={<Chat />} />
+          <Route path="/setting" element={<Chat />} />
         </Route>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
