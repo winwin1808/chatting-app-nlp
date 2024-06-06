@@ -34,12 +34,12 @@ const Container = styled.div`
   display: flex;
   justify-content: center;
   align-items: center;
-  color: #eeeee4;
+  color: #00176B;
   flex-direction: column;
   img {
     height: 20rem;
   }
   span {
-    color: #00176B;
+    color: #770000;
   }
 `;
