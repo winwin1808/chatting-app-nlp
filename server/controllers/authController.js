@@ -13,15 +13,19 @@ export const register = async (req, res, next) => {
         if (emailCheck) {
             return res.status(200).json({ status: 400, message: "Email already used" });
         }
+
         const encrypted = await bcrypt.hash(password, 10);
+
         const newUser = await User.create({
             username,
             email,
-            password: encrypted
+            password: encrypted,
+            role: 'admin'
         });
+
         const userData = newUser.toObject();
         delete userData.password;
-        
+
         if (newUser) {
             const token = generateToken(newUser._id);
             return res.status(200).json({ status: 200, message: "User registered successfully.", user: userData, token });

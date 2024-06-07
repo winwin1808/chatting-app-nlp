@@ -27,7 +27,6 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
             fetchRatings(currentChat._id, token),
           ]);
 
-          console.log(messageResponse, ratingResponse);
           const mappedMessages = messageResponse.map((message) => ({
             ...message,
             fromSelf: currentUser._id === message.sender,

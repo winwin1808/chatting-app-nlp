@@ -40,7 +40,6 @@ function Register() {
           email,
           password,
         });
-        console.log(data); // Debugging log
 
         if (data.status === 400) {
           toast.error(data.message, toastOptions);

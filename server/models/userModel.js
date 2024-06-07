@@ -27,10 +27,21 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    role: {
+        type: String,
+        enum: ['admin', 'user'],
+        default: 'user'
+    },
+    admin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    }
 },
-    {
-        timestamps: true,
-    });
+{
+    timestamps: true,
+});
 
-const User = mongoose.model("Users", userSchema);
+const User = mongoose.model("User", userSchema);
 export default User;
+
