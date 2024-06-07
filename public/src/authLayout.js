@@ -2,12 +2,14 @@ import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import styled from 'styled-components';
 import Footer from './components/Footer';
+import Loading from './components/Loading'; // Đường dẫn đến component Loading
+
 export default function AuthLayout() {
   return (
     <>
       <AuthContainer>
         <main>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Loading />}>
             <Outlet />
           </Suspense>
         </main>
@@ -26,5 +28,6 @@ const AuthContainer = styled.div`
   main {
     flex-grow: 1;
     padding: 1rem;
+    height: 100%;
   }
 `;
