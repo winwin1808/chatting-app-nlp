@@ -81,8 +81,8 @@ const SidebarComponent = () => {
           active={window.location.pathname === '/'} icon={<BsChatDots />}>
           Messages
         </MenuItem>
-        <MenuItem component={<Link to="/setting" />}
-          active={window.location.pathname === '/setting'} icon={<BsGear />}>
+        <MenuItem component={<Link to="/admin" />}
+          active={window.location.pathname === '/admin'} icon={<BsGear />}>
           Setting
         </MenuItem>
         <MenuItem onClick={handleLogout}

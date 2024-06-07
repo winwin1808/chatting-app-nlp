@@ -5,7 +5,7 @@ import AuthLayout from './authLayout';
 
 const Chat = lazy(() => import("./pages/Chat"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
-const Setting = lazy(() => import("./pages/Setting"));
+const Admin = lazy(() => import("./pages/Admin"));
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import('./pages/Register'));
 const SetAvatar = lazy(() => import("./pages/setAvatar"));
@@ -23,7 +23,7 @@ export default function App() {
         <Route element={<MainLayout collapsed={collapsed} handleCollapsedChange={handleCollapsedChange} />}>
           <Route path="/" element={<Chat />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/setting" element={<Setting />} />
+          <Route path="/admin" element={<Admin />} />
         </Route>
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
