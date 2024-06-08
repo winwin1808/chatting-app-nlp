@@ -7,7 +7,8 @@ import {
   createUserRoute, 
   getAllSubUsersRoute, 
   updateUserRoute, 
-  deleteUserRoute 
+  deleteUserRoute,
+  getAllRatingRoute
 } from '../utils/ApiRoutes';
 
 export const fetchMessages = async (chatId, token) => {
@@ -62,5 +63,10 @@ export const deleteSubUser = async (userId, token) => {
   const response = await axios.delete(deleteUserRoute(userId), {
     headers: { Authorization: `Bearer ${token}` },
   });
+  return response.data;
+};
+
+export const fetchAllRatings = async (filters) => {
+  const response = await axios.post(getAllRatingRoute, filters);
   return response.data;
 };

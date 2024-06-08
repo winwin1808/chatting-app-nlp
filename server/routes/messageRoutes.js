@@ -2,7 +2,7 @@ import { sendMsg, getAllMsg } from "../controllers/messageController.js";
 import { sendRating, getRatings } from "../controllers/ratingController.js"; 
 import express from 'express';
 import { protectRoute } from "../middleware/protectRoute.js";
-import { logRoute } from "../middleware/logRoute.js"; // import logRoute
+import { logRoute } from "../middleware/logRoute.js";
 const router = express.Router();
 
 //handle text message

@@ -1,22 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom'; // Assuming you are using react-router-dom for navigation
 import { getAllSubUsers, createSubUser, updateSubUser, deleteSubUser } from '../services/apiService';
 import SubUserForm from '../components/AdminContainer/SubUserForm';
 import SubUserList from '../components/AdminContainer/SubUserList';
 import styled from 'styled-components';
 
 export default function Admin() {
+  const navigate = useNavigate();
   const token = localStorage.getItem('jwt');
   const [subUsers, setSubUsers] = useState([]);
   const [currentSubUser, setCurrentSubUser] = useState(null);
 
-  useEffect(() => {
-    fetchSubUsers();
-  }, []);
-
-  const fetchSubUsers = async () => {
+  const fetchSubUsers = useCallback(async () => {
     const data = await getAllSubUsers(token);
     setSubUsers(data);
-  };
+  }, [token]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      let user = localStorage.getItem('register-user');
+      if (user && user !== 'undefined') {
+        user = JSON.parse(user);
+        if (user._id) {
+          fetchSubUsers();
+        } else {
+          navigate('/login');
+        }
+      } else {
+        navigate('/login');
+      }
+    };
+
+    fetchUser();
+  }, [navigate, fetchSubUsers]);
 
   const handleSaveSubUser = async (subUserData) => {
     if (currentSubUser) {

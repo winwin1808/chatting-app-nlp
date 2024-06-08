@@ -18,3 +18,6 @@ export const createUserRoute = `${host}/api/user/sub-users`;
 export const getAllSubUsersRoute = `${host}/api/user/sub-users`;
 export const updateUserRoute = (userId) => `${host}/api/user/sub-users/${userId}`;
 export const deleteUserRoute = (userId) => `${host}/api/user/sub-users/${userId}`;
+
+//Report API Routes
+export const getAllRatingRoute = `${host}/api/report/getAllRatings`;
