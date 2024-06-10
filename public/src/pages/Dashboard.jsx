@@ -1,133 +1,148 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
-import { Bar, Pie } from "react-chartjs-2";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, ArcElement } from "chart.js";
+import { fetchAllRatings, fetchAllUsers } from "../services/apiService";
+import { useSocketContext } from "../context/socket";
+import { useNavigate } from 'react-router-dom';
+import Filter from "../components/DashboardContainer/Filter";
+import ChartSection from "../components/DashboardContainer/Chart";
+import Summary from "../components/DashboardContainer/Summary";
+import Loading from "../components/Loading";
+import { getRatingsData, getOnlineUsersData, getConversationsData } from "../utils/chartOptions";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement);
 
 export default function Dashboard() {
+  const token = localStorage.getItem('jwt');
   const [ratings, setRatings] = useState([]);
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [currentUser, setCurrentUser] = useState(undefined);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const { onlineUsers } = useSocketContext();
   const [conversations, setConversations] = useState([]);
+  const [filters, setFilters] = useState({
+    star: ['1', '2', '3', '4', '5'], // All stars selected initially
+    sender: [], // Sender initialized as an empty array
+    start: '',
+    end: ''
+  });
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Generate random ratings data
-    const generateRatings = () => {
-      const ratingsData = [];
-      for (let i = 1; i <= 5; i++) {
-        ratingsData.push({
-          star: i,
-          count: Math.floor(Math.random() * 100) + 1,
-        });
+    const fetchUser = async () => {
+      let user = localStorage.getItem('register-user');
+      if (user && user !== 'undefined') {
+        user = JSON.parse(user);
+        if (user._id) {
+          setCurrentUser(user);
+        } else {
+          navigate('/login');
+        }
+      } else {
+        navigate('/login');
       }
-      setRatings(ratingsData);
     };
 
-    // Generate random online users data
-    const generateOnlineUsers = () => {
-      const totalUsers = 100;
-      const onlineCount = Math.floor(Math.random() * totalUsers);
-      const onlineUsersData = Array.from({ length: onlineCount }, (_, i) => `User${i + 1}`);
-      setOnlineUsers(onlineUsersData);
-    };
+    fetchUser();
+  }, [navigate]);
 
-    // Generate random conversations data
-    const generateConversations = () => {
-      const conversationsData = [];
-      const conversationCount = Math.floor(Math.random() * 50) + 1;
-      for (let i = 0; i < conversationCount; i++) {
-        conversationsData.push(`Conversation${i + 1}`);
+  useEffect(() => {
+    const getUsers = async () => {
+      try {
+        const data = await fetchAllUsers(token, currentUser._id);
+        setUsers(data);
+
+        // Initialize the sender filter with all user IDs
+        const userIds = data.map(user => user._id);
+        setFilters((prevFilters) => ({
+          ...prevFilters,
+          sender: userIds,
+        }));
+        setIsLoaded(true);
+      } catch (error) {
+        console.error("Error fetching users:", error);
+        setIsLoaded(true); // Ensure the page loads even if there's an error fetching users
       }
-      setConversations(conversationsData);
     };
 
-    generateRatings();
-    generateOnlineUsers();
-    generateConversations();
-  }, []);
+    if (currentUser) {
+      getUsers();
+    }
+  }, [token, currentUser]);
 
-  const ratingsData = {
-    labels: ratings.map((rating) => `Rating ${rating.star} stars`),
-    datasets: [
-      {
-        label: "Number of Ratings",
-        data: ratings.map((rating) => rating.count),
-        backgroundColor: "rgba(75, 192, 192, 0.6)",
-        borderColor: "rgba(75, 192, 192, 1)",
-        borderWidth: 1,
-      },
-    ],
+  const getRatings = async () => {
+    try {
+      const data = await fetchAllRatings(filters, token);
+      
+      // Process the ratings data to count the number of ratings for each star value
+      const starCount = data.reduce((acc, rating) => {
+        acc[rating.star] = (acc[rating.star] || 0) + 1;
+        return acc;
+      }, {});
+
+      // Create the ratings data in the format needed for the chart
+      const processedRatings = Object.keys(starCount).map(star => ({
+        star: parseInt(star),
+        count: starCount[star]
+      }));
+
+      setRatings(processedRatings);
+    } catch (error) {
+      console.error("Error fetching ratings:", error);
+    }
   };
 
-  const onlineUsersData = {
-    labels: ["Online Users", "Offline Users"],
-    datasets: [
-      {
-        data: [onlineUsers.length, 100 - onlineUsers.length], // Assuming 100 total users for illustration
-        backgroundColor: ["rgba(54, 162, 235, 0.6)", "rgba(255, 99, 132, 0.6)"],
-        borderColor: ["rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)"],
-        borderWidth: 1,
-      },
-    ],
+  const handleSearch = async () => {
+    await getRatings();
   };
 
-  const conversationsData = {
-    labels: ["Conversations"],
-    datasets: [
-      {
-        label: "Number of Conversations",
-        data: [conversations.length],
-        backgroundColor: "rgba(153, 102, 255, 0.6)",
-        borderColor: "rgba(153, 102, 255, 1)",
-        borderWidth: 1,
-      },
-    ],
+  const handleStarChange = (list) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      star: list.length ? list : ['1', '2', '3', '4', '5'],
+    }));
   };
+
+  const handleUserChange = (list) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      sender: list.length ? list : users.map(user => user._id),
+    }));
+  };
+
+  const handleDateChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: value,
+    }));
+  };
+
+  if (!isLoaded) {
+    return <Loading />;
+  }
 
   return (
     <Container>
       <div className="container">
-        <SummaryContainer>
-          <SummaryBox>
-            <h3>Total Ratings</h3>
-            <p>{ratings.reduce((acc, rating) => acc + rating.count, 0)}</p>
-          </SummaryBox>
-          <SummaryBox>
-            <h3>Online Users</h3>
-            <p>{onlineUsers.length}</p>
-          </SummaryBox>
-          <SummaryBox>
-            <h3>Conversations</h3>
-            <p>{conversations.length}</p>
-          </SummaryBox>
-        </SummaryContainer>
-        <ChartContainer>
-          <div className="chart">
-            <h3>Number of Ratings</h3>
-            <Bar data={ratingsData} />
-          </div>
-          <div className="chart">
-            <h3>Number of Ratings</h3>
-            <Bar data={ratingsData} />
-          </div>
-          <div className="chart">
-            <h3>Number of Ratings</h3>
-            <Bar data={ratingsData} />
-          </div>
-          <div className="chart">
-            <h3>Online Users</h3>
-            <Pie data={onlineUsersData} />
-          </div>
-          <div className="chart">
-            <h3>Conversations</h3>
-            <Bar data={conversationsData} />
-          </div>
-          <div className="chart">
-            <h3>Conversations</h3>
-            <Bar data={conversationsData} />
-          </div>
-        </ChartContainer>
-        
+        <Filter
+          users={users}
+          filters={filters}
+          onStarChange={handleStarChange}
+          onUserChange={handleUserChange}
+          onDateChange={handleDateChange}
+          buttonClick={handleSearch}
+        />
+        <Summary
+          totalRatings={ratings.reduce((acc, rating) => acc + rating.count, 0)}
+          onlineUsersCount={onlineUsers.length}
+          conversationsCount={conversations.length}
+        />
+        <ChartSection
+          ratingsData={getRatingsData(ratings)}
+          onlineUsersData={getOnlineUsersData(onlineUsers, users.length)}
+          conversationsData={getConversationsData(conversations)}
+        />
       </div>
     </Container>
   );
@@ -139,7 +154,6 @@ const Container = styled.div`
   justify-content: center;
   align-items: center;
   background-color: #770000;
-
 
   .container {
     height: calc(100vh - 5rem);
@@ -156,43 +170,5 @@ const Container = styled.div`
     @media screen and (max-width: 720px) {
       width: calc(100vw - 2rem);
     }
-  }
-`;
-
-const SummaryContainer = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  @media screen and (max-width: 720px) {
-    flex-direction: column;
-    align-items: center;
-  }
-`;
-
-const ChartContainer = styled.div`
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-  width: 100%;
-  @media screen and (max-width: 1080px) {
-    grid-template-columns: 1fr;
-  }
-`;
-
-const SummaryBox = styled.div`
-  background-color: #fff;
-  padding: 1rem;
-  border-radius: 0.7rem;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  text-align: center;
-  flex: 1;
-  max-height: 8rem;
-  h3 {
-    margin-bottom: 1rem;
-  }
-
-  p {
-    font-size: 2rem;
-    font-weight: bold;
   }
 `;

@@ -9,25 +9,22 @@ export const getAllRatings = async (req, res, next) => {
         // Build the query object in the specified format
         let query = {
             star: star || undefined,
-            sender: sender || undefined,
-            receiver: receiver || undefined,
+            sender: Array.isArray(sender) ? { $in: sender } : undefined,
             start: start || undefined,
             end: end || undefined,
         };
-
         // Convert the query object to the format required by Mongoose
         let mongooseQuery = {};
-        if (query.star) mongooseQuery.star = query.star;
+        if (query.star) mongooseQuery.star = { $in: query.star.map(Number) };
         if (query.sender) mongooseQuery.sender = query.sender;
-        if (query.receiver) mongooseQuery.receiver = query.receiver;
 
         // Handle date range filtering
         if (query.start || query.end) {
             mongooseQuery.createdAt = {};
             if (query.start) mongooseQuery.createdAt.$gte = new Date(query.start);
             if (query.end) mongooseQuery.createdAt.$lte = new Date(query.end);
-        }
-
+        } 
+       
         // Fetch the ratings based on the Mongoose query
         const ratings = await Ratings.find(mongooseQuery)
             .populate('sender', 'username email')  // Populating sender's details

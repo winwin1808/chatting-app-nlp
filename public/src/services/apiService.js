@@ -8,7 +8,8 @@ import {
   getAllSubUsersRoute, 
   updateUserRoute, 
   deleteUserRoute,
-  getAllRatingRoute
+  getAllRatingRoute,
+  allUsersRoute
 } from '../utils/ApiRoutes';
 
 export const fetchMessages = async (chatId, token) => {
@@ -66,7 +67,19 @@ export const deleteSubUser = async (userId, token) => {
   return response.data;
 };
 
-export const fetchAllRatings = async (filters) => {
-  const response = await axios.post(getAllRatingRoute, filters);
+export const fetchAllRatings = async (filters, token) => {
+  const response = await axios.post(getAllRatingRoute, filters, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+//Get all users
+export const fetchAllUsers = async (token, currentUserId) => {
+  const response = await axios.get(`${allUsersRoute}/${currentUserId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
   return response.data;
 };
