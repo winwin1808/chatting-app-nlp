@@ -6,11 +6,11 @@ export const logoutRoute = `${host}/api/auth/logout`;
 export const allUsersRoute = `${host}/api/user/allusers`;
 
 //Message API Routes
-export const sendMessageRoute = `${host}/api/messages/sendMessage`;
-export const receiveMessageRoute = `${host}/api/messages/getMessage`;
-export const sendRatingRoute = `${host}/api/messages/sendRating`;
-export const getRatingRoute = `${host}/api/messages/getRating`;
-export const sendRatingRequestRoute = `${host}/api/messages/sendRatingRequest`;
+export const sendMessageRoute = `${host}/api/userMessages/sendMessage`;
+export const receiveMessageRoute = `${host}/api/userMessages/getMessage`;
+export const sendRatingRoute = `${host}/api/userMessages/sendRating`;
+export const getRatingRoute = `${host}/api/userMessages/getRating`;
+export const sendRatingRequestRoute = `${host}/api/userMessages/sendRatingRequest`;
 export const setAvatarRoute = `${host}/api/user/setavatar`;
 
 // CRUD User API Routes

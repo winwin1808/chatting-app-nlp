@@ -1,4 +1,4 @@
-import { sendMsg, getAllMsg } from "../controllers/messageController.js"; 
+import { sendMsg, getAllMsg } from "../controllers/userMessageController.js"; 
 import { sendRating, getRatings } from "../controllers/ratingController.js"; 
 import express from 'express';
 import { protectRoute } from "../middleware/protectRoute.js";
