@@ -136,6 +136,7 @@ export default function Dashboard() {
         <Summary
           totalRatings={ratings.reduce((acc, rating) => acc + rating.count, 0)}
           onlineUsersCount={onlineUsers.length}
+          totalUsersCount={users.length}
           conversationsCount={conversations.length}
         />
         <ChartSection

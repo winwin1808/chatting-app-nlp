@@ -2,7 +2,7 @@
 import React from "react";
 import styled from "styled-components";
 
-const Summary = ({ totalRatings, onlineUsersCount, conversationsCount }) => {
+const Summary = ({ totalRatings, onlineUsersCount, conversationsCount,totalUsersCount }) => {
   return (
     <SummaryContainer>
       <SummaryBox>
@@ -11,7 +11,7 @@ const Summary = ({ totalRatings, onlineUsersCount, conversationsCount }) => {
       </SummaryBox>
       <SummaryBox>
         <h3>Online Users</h3>
-        <p>{onlineUsersCount}</p>
+        <p>{onlineUsersCount}/{totalUsersCount}</p>
       </SummaryBox>
       <SummaryBox>
         <h3>Conversations</h3>
