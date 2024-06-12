@@ -2,9 +2,9 @@ import React, { useEffect, useState } from "react";
 import styled from 'styled-components';
 import { useNavigate } from "react-router-dom";
 import { fetchAllUsers } from "../services/apiService";
-import Contacts from "../components/ChatContainer/Contact";
-import Welcome from "../components/ChatContainer/Welcome";
-import ChatContainer from "../components/ChatContainer/ChatContainer";
+import Contacts from "../components/UserChatContainer/Contact";
+import Welcome from "../components/UserChatContainer/Welcome";
+import ChatContainer from "../components/UserChatContainer/ChatContainer";
 import { useSocketContext } from '../context/socket';
 
 export default function Chat() {

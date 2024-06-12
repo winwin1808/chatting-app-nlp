@@ -1,15 +1,12 @@
 import { sendMsg, getAllMsg } from "../controllers/userMessageController.js"; 
-import { sendRating, getRatings } from "../controllers/ratingController.js"; 
 import express from 'express';
 import { protectRoute } from "../middleware/protectRoute.js";
 import { logRoute } from "../middleware/logRoute.js";
+
 const router = express.Router();
 
-//handle text message
+// Handle text messages
 router.post("/sendMessage/:id", logRoute, protectRoute, sendMsg);
 router.post("/getMessage/:id", logRoute, protectRoute, getAllMsg);
-//handle rating message
-router.post("/sendRating/:id", logRoute, protectRoute, sendRating);
-router.post("/getRating/:id", logRoute, protectRoute, getRatings);
 
 export default router;
