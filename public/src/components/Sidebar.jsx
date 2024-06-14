@@ -80,11 +80,11 @@ const SidebarComponent = () => {
         </MenuItem>
         <MenuItem component={<Link to="/userChat" />}
           active={window.location.pathname === '/userChat'} icon={<BsChatDots />}>
-          User Chat
+          Internal Chat
         </MenuItem>
         <MenuItem component={<Link to="/customerChat" />}
           active={window.location.pathname === '/customerChat'} icon={<IoChatbubblesOutline />}>
-          Customer Chat
+          Chat Widget
         </MenuItem>
         <MenuItem component={<Link to="/admin" />}
           active={window.location.pathname === '/admin'} icon={<BsGear />}>

@@ -3,9 +3,8 @@ import { BsEmojiSmileFill } from "react-icons/bs";
 import { IoMdSend } from "react-icons/io";
 import styled from "styled-components";
 import Picker from "emoji-picker-react";
-import { FaStar } from "react-icons/fa6";
 
-export default function ChatInput({ handleSendMsg, openRatingModal }) {
+export default function ChatInput({ handleSendMsg }) {
   const [msg, setMsg] = useState('');
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -33,9 +32,6 @@ export default function ChatInput({ handleSendMsg, openRatingModal }) {
             previewConfig={{ showPreview: false }}
             onEmojiClick={(emojiObject) => setMsg((prevMsg) => prevMsg + emojiObject.emoji)} />}
         </div>
-        <div className="emoji">
-          <FaStar onClick={openRatingModal} />
-        </div>
       </div>
       <form className="input-container" onSubmit={(event) => sendChat(event)}>
         <input
@@ -55,7 +51,7 @@ export default function ChatInput({ handleSendMsg, openRatingModal }) {
 const Container = styled.div`
   display: grid;
   align-items: center;
-  grid-template-columns: 10% 90%;
+  grid-template-columns: 5% 95%;
   min-height: 100%;    
   margin: 0 0.5rem;
   padding: 0 2rem 2rem;

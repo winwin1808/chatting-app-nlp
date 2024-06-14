@@ -11,7 +11,8 @@ import {
   getAllRatingRoute,
   allUsersRoute,
   sendCustomerMessageRoute,
-  receiveCustomerMessageRoute
+  receiveCustomerMessageRoute,
+  getAllConversationCustomers
 } from '../utils/ApiRoutes';
 
 // User Message API Calls
@@ -36,8 +37,8 @@ export const fetchCustomerMessages = async (chatId, token) => {
   return response.data;
 };
 
-export const sendCustomerMessage = async (chatId, message, token) => {
-  await axios.post(`${sendCustomerMessageRoute}/${chatId}`, { message }, {
+export const sendCustomerMessage = async (chatId, message, adminId, token) => {
+  await axios.post(`${sendCustomerMessageRoute}/${chatId}`, { message, adminId }, {
     headers: { Authorization: `Bearer ${token}` },
   });
 };
@@ -96,9 +97,15 @@ export const fetchAllRatings = async (filters, token) => {
 // Get all users
 export const fetchAllUsers = async (token, currentUserId) => {
   const response = await axios.get(`${allUsersRoute}/${currentUserId}`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+// Get all customers
+export const fetchCustomerConversations = async (token, currentUserId) => {
+  const response = await axios.get(`${getAllConversationCustomers}/${currentUserId}`, {
+    headers: { Authorization: `Bearer ${token}`}
   });
   return response.data;
 };

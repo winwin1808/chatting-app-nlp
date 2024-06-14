@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from 'styled-components';
 import { useNavigate } from "react-router-dom";
-import { fetchAllUsers } from "../services/apiService";
+import { fetchCustomerConversations } from "../services/apiService";
 import Contacts from "../components/CustomerChatContainer/Contact";
 import Welcome from "../components/CustomerChatContainer/Welcome";
 import ChatContainer from "../components/CustomerChatContainer/ChatContainer";
@@ -40,7 +40,7 @@ export default function Chat() {
         if (currentUser.isAvatarImageSet) {
           try {
             const token = localStorage.getItem('jwt');
-            const data = await fetchAllUsers(token, currentUser._id);
+            const data = await fetchCustomerConversations(token, currentUser._id);
             // Exclude the current user from the contacts
             const filteredContacts = data.filter(user => user._id !== currentUser._id);
             setContacts(filteredContacts);

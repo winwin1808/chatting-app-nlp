@@ -6,9 +6,9 @@ import ChatMessages from './ChatMessages';
 import ChatHeader from './ChatHeader';
 import moment from 'moment';
 import { 
-  fetchMessages,
+  fetchCustomerMessages,
   fetchRatings, 
-  sendMessage, 
+  sendCustomerMessage, 
   sendRating } 
 from '../../services/apiService';
 
@@ -18,13 +18,13 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   useEffect(() => {
-    const fetchMessagesAndRatings = async () => {
+    const fetchCustomerMessagesAndRatings = async () => {
       if (currentUser && currentChat) {
         try {
           const token = localStorage.getItem('jwt');
           const [messageResponse, ratingResponse] = await Promise.all([
-            fetchMessages(currentChat._id, token),
-            fetchRatings(currentChat._id, token),
+            fetchCustomerMessages(currentChat._id, token),
+            // fetchRatings(currentChat._id, token),
           ]);
 
           const mappedMessages = messageResponse.map((message) => ({
@@ -32,26 +32,26 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
             fromSelf: currentUser._id === message.sender,
             time: moment(message.createdAt).format('LT'),
           }));
+          setMessages(mappedMessages);
+          // const mappedRatings = ratingResponse.map((rating) => ({
+          //   ...rating,
+          //   fromSelf: currentUser._id === rating.sender,
+          //   message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
+          //   time: moment(rating.createdAt).format('LT'),
+          // }));
 
-          const mappedRatings = ratingResponse.map((rating) => ({
-            ...rating,
-            fromSelf: currentUser._id === rating.sender,
-            message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
-            time: moment(rating.createdAt).format('LT'),
-          }));
+          // const combinedData = [...mappedMessages, ...mappedRatings];
 
-          const combinedData = [...mappedMessages, ...mappedRatings];
+          // combinedData.sort((a, b) => moment(a.createdAt).diff(moment(b.createdAt)));
 
-          combinedData.sort((a, b) => moment(a.createdAt).diff(moment(b.createdAt)));
-
-          setMessages(combinedData);
+          // setMessages(combinedData);
 
         } catch (error) {
           console.error('Error fetching data:', error);
         }
       }
     };
-    fetchMessagesAndRatings();
+    fetchCustomerMessagesAndRatings();
   }, [currentChat, currentUser]);
 
   useEffect(() => {
@@ -83,7 +83,9 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
   const handleSendMsg = async (msg) => {
     try {
       const token = localStorage.getItem('jwt');
-      await sendMessage(currentChat._id, msg, token);
+      const adminId = currentUser.admin ? currentUser.admin : currentUser._id;
+      
+      await sendCustomerMessage(currentChat._id, msg, adminId ,token);
 
       if (socket) {
         socket.emit('send-msg', { receiver: currentChat._id, sender: currentUser._id, message: msg });

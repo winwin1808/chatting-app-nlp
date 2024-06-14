@@ -1,5 +1,5 @@
 import Ratings from '../models/ratingModel.js';
-import Conversations from '../models/conversationModel.js';
+import CustomerConversations from '../models/customerConversationModel.js';
 import { getReceiverSocketId, io } from "../config/socket.js";
 
 export const sendRating = async (req, res, next) => {
@@ -9,12 +9,12 @@ export const sendRating = async (req, res, next) => {
         const sender = req.user._id;
 
         // Fetch or create a conversation between sender and receiver
-        let conversation = await Conversations.findOne({
+        let conversation = await CustomerConversations.findOne({
             participants: { $all: [sender, receiver] },
         });
 
         if (!conversation) {
-            conversation = await Conversations.create({
+            conversation = await CustomerConversations.create({
                 participants: [sender, receiver],
             });
         }
@@ -56,7 +56,7 @@ export const getRatings = async (req, res, next) => {
         const sender = req.user._id;
 
         // Fetch the conversation and populate ratings
-        const conversation = await Conversations.findOne({
+        const conversation = await CustomerConversations.findOne({
             participants: { $all: [sender, userToChatId] },
         }).populate("ratings");
 

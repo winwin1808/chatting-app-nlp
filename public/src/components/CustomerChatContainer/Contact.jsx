@@ -12,7 +12,6 @@ export default function Contacts({ contacts, changeChat }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [isFocused, setIsFocused] = useState(false);
 
-
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -41,11 +40,11 @@ export default function Contacts({ contacts, changeChat }) {
   };
 
   const filteredContacts = contacts.filter(contact =>
-    contact.username.toLowerCase().includes(searchTerm.toLowerCase())
+    contact.participants[0]?.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const isOnline = (contact) => {
-    return onlineUsers.includes(contact._id);
+    return onlineUsers.includes(contact.participants[0]?._id);
   };
 
   return (
@@ -76,14 +75,14 @@ export default function Contacts({ contacts, changeChat }) {
                 onClick={() => changeCurrentChat(index, contact)}
               >
                 <div className="avatar">
-                  <img
-                    src={`data:image/svg+xml;base64,${contact.avatarImage}`}
-                    alt=""
+                <img
+                    src={contact.participants[0]?.avatarImage ? `data:image/svg+xml;base64,${contact.participants[0]?.avatarImage}` : "https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg"}
+                    alt="Avatar"
                   />
                   {isOnline(contact) && <OnlineIndicator />}
                 </div>
                 <div className="username">
-                  <h3>{contact.username}</h3>
+                  <h3>{contact.participants[0]?.name}</h3>
                 </div>
               </div>
             ))}
@@ -160,6 +159,7 @@ const Container = styled.div`
         position: relative;
         img {
           height: 3rem;
+          border-radius: 50%;
         }
       }
 

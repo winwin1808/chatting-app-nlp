@@ -1,18 +1,25 @@
 import React from 'react';
 import styled from 'styled-components';
 
-const ChatHeader = ({ currentChat }) => (
-  <Header>
-    <div className="user-details">
-      <div className="avatar">
-        <img src={`data:image/svg+xml;base64,${currentChat.avatarImage}`} alt="" />
+const ChatHeader = ({ currentChat }) => {
+  const participant = currentChat?.participants[0]; // Assuming the first participant is the customer
+
+  return (
+    <Header>
+      <div className="user-details">
+        <div className="avatar">
+          <img
+            src="https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg"
+            alt="Avatar"
+          />
+        </div>
+        <div className="username">
+          <h3>{participant?.name}</h3>
+        </div>
       </div>
-      <div className="username">
-        <h3>{currentChat.username}</h3>
-      </div>
-    </div>
-  </Header>
-);
+    </Header>
+  );
+};
 
 export default ChatHeader;
 
@@ -39,7 +46,8 @@ const Header = styled.div`
 
     .avatar {
       img {
-        height: 2.6rem;
+        height: 2.3rem;
+        border-radius: 50%;
       }
     }
   }

@@ -7,11 +7,11 @@ import { logRoute } from "../middleware/logRoute.js";
 const router = express.Router();
 
 // Handle customer messages
-router.post('/:id', protectRoute, logRoute, sendCustomerMsg);
-router.get('/:id', protectRoute, logRoute, getAllCustomerMsg);
+router.post('/sendMessage/:id', sendCustomerMsg);
+router.post('/getMessage/:id', logRoute, getAllCustomerMsg);
 
 // Handle rating messages
-router.post("/sendRating/:id", logRoute, protectRoute, sendRating);
-router.post("/getRating/:id", logRoute, protectRoute, getRatings);
+router.post("/sendRating/:id", logRoute, sendRating);
+router.post("/getRating/:id", logRoute, getRatings);
 
 export default router;

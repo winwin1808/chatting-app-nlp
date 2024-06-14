@@ -9,6 +9,11 @@ const customerSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  admin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        default: null
+    }
 }, {
   timestamps: true,
 });

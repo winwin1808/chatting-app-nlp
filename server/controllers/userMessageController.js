@@ -1,5 +1,5 @@
 import Messages from '../models/messageModel.js';
-import Conversations from '../models/userConversationModel.js';
+import UserConversations from '../models/userConversationModel.js';
 import { getReceiverSocketId, io } from "../config/socket.js";
 
 export const sendMsg = async (req, res, next) => {
@@ -9,12 +9,12 @@ export const sendMsg = async (req, res, next) => {
         const sender = req.user._id;
 
         // Fetch or create a conversation between sender and receiver
-        let conversation = await Conversations.findOne({
+        let conversation = await UserConversations.findOne({
             participants: { $all: [sender, receiver] },
         });
 
         if (!conversation) {
-            conversation = await Conversations.create({
+            conversation = await UserConversations.create({
                 participants: [sender, receiver],
             });
         }
@@ -54,7 +54,7 @@ export const getAllMsg = async (req, res, next) => {
         const sender = req.user._id;
 
         // Fetch the conversation and populate messages
-        const conversation = await Conversations.findOne({
+        const conversation = await UserConversations.findOne({
             participants: { $all: [sender, userToChatId] },
         }).populate("messages");
 
