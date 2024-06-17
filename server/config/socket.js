@@ -1,13 +1,7 @@
-import dotenv from 'dotenv';
 import { Server } from 'socket.io';
 
-dotenv.config();
-const url = process.env.NODE_ENV === 'production' ? process.env.PROD_URL : process.env.DEV_URL;
-
 let io;
-
-
-const userSocketMap = {}; // {userId: socketId}
+const userSocketMap = {};
 
 export const initializeSocket = (server) => {
   io = new Server(server, {
@@ -34,6 +28,19 @@ export const initializeSocket = (server) => {
         delete userSocketMap[userId];
         io.emit("getOnlineUsers", Object.keys(userSocketMap));
       }
+    });
+
+    socket.on("sendMessage", (data) => {
+      const { receiver, message, sender, _id, time } = data;
+      const receiverSocketId = userSocketMap[receiver];
+      const newMessage = { _id, message, sender, receiver, createdAt: new Date() };
+
+      if (receiverSocketId) {
+        io.to(receiverSocketId).emit("newCustomerMessage", newMessage);
+      }
+
+      // Emit the message back to the sender for confirmation
+      socket.emit("messageSentConfirmation", newMessage);
     });
   });
 

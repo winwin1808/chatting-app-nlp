@@ -4,12 +4,12 @@ import { getReceiverSocketId, io } from "../config/socket.js";
 
 export const getAllRatings = async (req, res, next) => {
     try {
-        const { star, sender, receiver, start, end } = req.body;
+        const { star, receiver, start, end } = req.body;
 
         // Build the query object in the specified format
         let query = {
             star: star || undefined,
-            sender: Array.isArray(sender) ? { $in: sender } : undefined,
+            receiver: Array.isArray(receiver) ? { $in: receiver } : undefined,
             start: start || undefined,
             end: end || undefined,
         };
@@ -27,8 +27,7 @@ export const getAllRatings = async (req, res, next) => {
        
         // Fetch the ratings based on the Mongoose query
         const ratings = await Ratings.find(mongooseQuery)
-            .populate('sender', 'username email')  // Populating sender's details
-            .populate('receiver', 'username email');  // Populating receiver's details
+            .populate('receiver', 'username email') 
 
         // Send the ratings back to the client
         res.status(200).json(ratings);

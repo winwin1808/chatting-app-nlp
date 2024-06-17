@@ -6,19 +6,23 @@ const ratingSchema = new mongoose.Schema(
             type: Number,
             required: true
           },
-          content: {
-            type: String,
-            default: ''
+        content: {
+          type: String,
+          default: ''
           },
-          receiver: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
+        receiver: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+          required: true,
           },
-          sender: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
+        sender: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Customer",
+          required: true,
+          },
+          isDone: {
+            type: Boolean,
+            default: false
           }
     },
     {

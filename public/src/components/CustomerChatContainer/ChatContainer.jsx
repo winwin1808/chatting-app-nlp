@@ -1,31 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import ChatInput from './ChatInput';
-import RatingModal from './Rating';
 import ChatMessages from './ChatMessages';
 import ChatHeader from './ChatHeader';
 import moment from 'moment';
 import { 
-  fetchCustomerMessages,
-  fetchRatings, 
+  fetchCustomerMessages, 
   sendCustomerMessage, 
-  sendRating } 
+ } 
 from '../../services/apiService';
 
 export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
   const [arrivalMessage, setArrivalMessage] = useState(null);
-  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchCustomerMessagesAndRatings = async () => {
       if (currentUser && currentChat) {
         try {
           const token = localStorage.getItem('jwt');
-          const [messageResponse, ratingResponse] = await Promise.all([
-            fetchCustomerMessages(currentChat._id, token),
-            // fetchRatings(currentChat._id, token),
-          ]);
+          const messageResponse = await fetchCustomerMessages(currentChat._id, token);
 
           const mappedMessages = messageResponse.map((message) => ({
             ...message,
@@ -33,19 +27,6 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
             time: moment(message.createdAt).format('LT'),
           }));
           setMessages(mappedMessages);
-          // const mappedRatings = ratingResponse.map((rating) => ({
-          //   ...rating,
-          //   fromSelf: currentUser._id === rating.sender,
-          //   message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
-          //   time: moment(rating.createdAt).format('LT'),
-          // }));
-
-          // const combinedData = [...mappedMessages, ...mappedRatings];
-
-          // combinedData.sort((a, b) => moment(a.createdAt).diff(moment(b.createdAt)));
-
-          // setMessages(combinedData);
-
         } catch (error) {
           console.error('Error fetching data:', error);
         }
@@ -56,23 +37,19 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
 
   useEffect(() => {
     if (socket) {
-      const handleNewMessage = (msg) => setArrivalMessage({ ...msg, fromSelf: false, time: moment(msg.createdAt).format('LT') });
-      const handleNewRating = (rating) => setArrivalMessage({
-        ...rating,
-        fromSelf: false,
-        message: `Rating: ${rating.star} stars, Review: ${rating.content}`,
-        time: moment(rating.createdAt).format('LT'),
+      const handleNewMessage = (msg) => setArrivalMessage({ 
+        ...msg, 
+        fromSelf: msg.sender === currentUser._id, 
+        time: moment(msg.createdAt).format('LT') 
       });
 
-      socket.on('newMessage', handleNewMessage);
-      socket.on('newRating', handleNewRating);
+      socket.on('newCustomerMessage', handleNewMessage);
 
       return () => {
-        socket.off('newMessage', handleNewMessage);
-        socket.off('newRating', handleNewRating);
+        socket.off('newCustomerMessage', handleNewMessage);
       };
     }
-  }, [socket]);
+  }, [socket, currentUser._id]);
 
   useEffect(() => {
     if (arrivalMessage) {
@@ -84,14 +61,21 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
     try {
       const token = localStorage.getItem('jwt');
       const adminId = currentUser.admin ? currentUser.admin : currentUser._id;
+
+      const newMessage = { 
+        message: msg, 
+        sender: currentUser._id, 
+        receiver: currentChat._id, 
+        createdAt: new Date() 
+      };
       
       await sendCustomerMessage(currentChat._id, msg, adminId ,token);
 
       if (socket) {
-        socket.emit('send-msg', { receiver: currentChat._id, sender: currentUser._id, message: msg });
+        socket.emit('sendMessage', newMessage);
       }
 
-      setMessages((prevMessages) => [...prevMessages, { fromSelf: true, message: msg, time: moment().format('LT') }]);
+      setMessages((prevMessages) => [...prevMessages, { ...newMessage, fromSelf: true, time: moment().format('LT') }]);
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -99,36 +83,11 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
 
   const handleSendRatingRequest = () => handleSendMsg("RATING_REQUEST");
 
-  const handleRatingSubmit = async (rating, content) => {
-    try {
-      const token = localStorage.getItem('jwt');
-      await sendRating(currentChat._id, rating, content, token);
-
-      const ratingMessage = {
-        message: `Rating: ${rating} stars, Review: ${content}`,
-        sender: currentUser._id,
-        receiver: currentChat._id,
-        fromSelf: true,
-        time: moment().format('LT'),
-      };
-
-      setMessages((prevMessages) => [...prevMessages, ratingMessage]);
-
-      if (socket) {
-        socket.emit('send-rating', ratingMessage);
-      }
-    } catch (error) {
-      console.error('Error submitting rating:', error);
-    }
-    setIsRatingModalOpen(false);
-  };
-
   return currentChat ? (
     <Container>
       <ChatHeader currentChat={currentChat} />
-      <ChatMessages messages={messages} openRatingModal={() => setIsRatingModalOpen(true)} />
+      <ChatMessages messages={messages} />
       <ChatInput handleSendMsg={handleSendMsg} openRatingModal={handleSendRatingRequest} />
-      <RatingModal isOpen={isRatingModalOpen} onRequestClose={() => setIsRatingModalOpen(false)} handleSubmit={handleRatingSubmit} />
     </Container>
   ) : null;
 }

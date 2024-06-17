@@ -18,8 +18,8 @@ const ChatMessages = ({ messages, openRatingModal }) => {
           {msg.message === "RATING_REQUEST" ? (
             <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
               <div className="content">
-                <StyledButton onClick={() => openRatingModal()} disabled={msg.fromSelf}>
-                  {msg.fromSelf ? 'Rating sent' : 'Rating here!'}
+                <StyledButton disabled={msg.fromSelf}>
+                  Rating sent
                 </StyledButton>
                 <div className="time">{msg.time}</div>
               </div>

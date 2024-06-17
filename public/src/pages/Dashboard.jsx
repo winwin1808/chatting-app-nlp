@@ -47,8 +47,10 @@ export default function Dashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    const getUsers = async () => {
+    const getUsersAndRatings = async () => {
       try {
+        if (!currentUser) return;
+
         const data = await fetchAllUsers(token, currentUser._id);
         setUsers(data);
 
@@ -58,16 +60,18 @@ export default function Dashboard() {
           ...prevFilters,
           sender: userIds,
         }));
+
+        // Fetch ratings after setting users
+        await getRatings();
+        
         setIsLoaded(true);
       } catch (error) {
-        console.error("Error fetching users:", error);
-        setIsLoaded(true); // Ensure the page loads even if there's an error fetching users
+        console.error("Error fetching users and ratings:", error);
+        setIsLoaded(true); // Ensure the page loads even if there's an error fetching users or ratings
       }
     };
 
-    if (currentUser) {
-      getUsers();
-    }
+    getUsersAndRatings();
   }, [token, currentUser]);
 
   const getRatings = async () => {
