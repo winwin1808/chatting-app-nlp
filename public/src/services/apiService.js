@@ -1,18 +1,19 @@
 import axios from 'axios';
-import { 
-  sendMessageRoute, 
-  receiveMessageRoute, 
-  sendRatingRoute, 
-  getRatingRoute, 
-  createUserRoute, 
-  getAllSubUsersRoute, 
-  updateUserRoute, 
+import {
+  sendMessageRoute,
+  receiveMessageRoute,
+  sendRatingRoute,
+  getRatingRoute,
+  createUserRoute,
+  getAllSubUsersRoute,
+  updateUserRoute,
   deleteUserRoute,
   getAllRatingRoute,
   allUsersRoute,
   sendCustomerMessageRoute,
   receiveCustomerMessageRoute,
-  getAllConversationCustomers
+  getAllConversationCustomersRoute,
+  markConversationAsDoneRoute
 } from '../utils/ApiRoutes';
 
 // User Message API Calls
@@ -104,8 +105,15 @@ export const fetchAllUsers = async (token, currentUserId) => {
 
 // Get all customers
 export const fetchCustomerConversations = async (token, currentUserId) => {
-  const response = await axios.get(`${getAllConversationCustomers}/${currentUserId}`, {
-    headers: { Authorization: `Bearer ${token}`}
+  const response = await axios.get(`${getAllConversationCustomersRoute}/${currentUserId}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  return response.data;
+};
+// Mark conversation as done
+export const markConversationAsDone = async (conversationId, token) => {
+  const response = await axios.put(markConversationAsDoneRoute(conversationId), null, {
+    headers: { Authorization: `Bearer ${token}` },
   });
   return response.data;
 };

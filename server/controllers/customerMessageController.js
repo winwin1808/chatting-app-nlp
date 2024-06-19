@@ -1,6 +1,6 @@
 import Messages from '../models/messageModel.js';
 import CustomerConversations from '../models/customerConversationModel.js';
-import { getReceiverSocketId, io } from "../config/socket.js";
+import { io, getReceiverSocketId } from "../config/socket.js";
 
 export const sendCustomerMsg = async (req, res, next) => {
     try {
@@ -9,13 +9,16 @@ export const sendCustomerMsg = async (req, res, next) => {
         const sender = req.body.adminId;
 
         // Fetch the conversation
-        let conversation = await CustomerConversations.findById(conversationId);
+        let conversation = await CustomerConversations.findOne({
+            _id: conversationId,
+            isDone: false
+        });
         if (!conversation) {
             return res.status(404).json({ error: "Conversation not found" });
         }
 
         // Create a new message
-        const receiver = conversation.participants.find(participant => participant !== sender);
+        const receiver = conversation.participants.find(participant => participant.toString() !== sender);
         if (!receiver) {
             return res.status(400).json({ error: "Receiver not found in conversation" });
         }
@@ -31,14 +34,10 @@ export const sendCustomerMsg = async (req, res, next) => {
         // Save the conversation and message
         await Promise.all([conversation.save(), newCustomerMessage.save()]);
 
-        // Get the receiver's socket ID
         const receiverSocketId = getReceiverSocketId(receiver);
+
         if (receiverSocketId) {
-            // Emit the new message to the receiver if they are connected
-            io.to(receiverSocketId).emit("newCustomerMessage", newCustomerMessage);
-            console.log("Message sent to receiver", receiverSocketId);
-        } else {
-            console.log("Receiver not connected");
+            io.to(receiverSocketId).emit("newAgentMessage", newCustomerMessage);
         }
 
         // Send the response back to the client

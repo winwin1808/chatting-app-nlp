@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styled from 'styled-components';
 import { useNavigate } from "react-router-dom";
 import { fetchCustomerConversations } from "../services/apiService";
@@ -34,30 +34,43 @@ export default function Chat() {
     fetchUser();
   }, [navigate, onlineUsers]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (currentUser && currentUser._id) {
-        if (currentUser.isAvatarImageSet) {
-          try {
-            const token = localStorage.getItem('jwt');
-            const data = await fetchCustomerConversations(token, currentUser._id);
-            // Exclude the current user from the contacts
-            const filteredContacts = data.filter(user => user._id !== currentUser._id);
-            setContacts(filteredContacts);
-          } catch (error) {
-            console.error('Error fetching data:', error);
-          }
-        } else {
-          navigate("/setAvatar");
+  const fetchData = useCallback(async () => {
+    if (currentUser && currentUser._id) {
+      if (currentUser.isAvatarImageSet) {
+        try {
+          const token = localStorage.getItem('jwt');
+          const data = await fetchCustomerConversations(token, currentUser._id);
+          const filteredContacts = data.filter(user => user._id !== currentUser._id);
+          setContacts(filteredContacts);
+        } catch (error) {
+          console.error('Error fetching data:', error);
         }
+      } else {
+        navigate("/setAvatar");
       }
-    };
-
-    fetchData();
+    }
   }, [currentUser, navigate]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('newContact', () => {
+        fetchData(); // Refetch the conversations when a new contact is created
+      });
+
+      return () => socket.off('newContact');
+    }
+  }, [socket, fetchData]);
 
   const handleChatChange = (chat) => {
     setCurrentChat(chat);
+  };
+
+  const handleNoContacts = () => {
+    setCurrentChat(undefined);
   };
 
   return (
@@ -65,8 +78,8 @@ export default function Chat() {
       {currentUser && currentUser._id ? (
         <Container>
           <div className="container">
-            <Contacts contacts={contacts} changeChat={handleChatChange} />
-            {isLoaded && currentChat === undefined ? (
+            <Contacts contacts={contacts} changeChat={handleChatChange} showWelcome={handleNoContacts} />
+            {isLoaded && (currentChat === undefined || contacts.length === 0) ? (
               <Welcome currentUser={currentUser} />
             ) : (
               <ChatContainer currentChat={currentChat} currentUser={currentUser} socket={socket} />

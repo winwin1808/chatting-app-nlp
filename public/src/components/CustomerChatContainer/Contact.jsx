@@ -2,15 +2,19 @@ import React, { useState, useEffect } from "react";
 import styled from "styled-components";
 import { CiSearch } from "react-icons/ci";
 import { IoCloseOutline } from "react-icons/io5";
+import { MdOutlineDone } from "react-icons/md";
 import { useSocketContext } from "../../context/socket";
+import { markConversationAsDone } from '../../services/apiService';
 
-export default function Contacts({ contacts, changeChat }) {
+export default function Contacts({ contacts, changeChat, showWelcome }) {
   const { onlineUsers } = useSocketContext();
   const [currentUserName, setCurrentUserName] = useState(undefined);
   const [currentUserImage, setCurrentUserImage] = useState(undefined);
   const [currentSelected, setCurrentSelected] = useState(undefined);
   const [searchTerm, setSearchTerm] = useState("");
   const [isFocused, setIsFocused] = useState(false);
+  const [filteredContacts, setFilteredContacts] = useState(contacts);
+  const token = localStorage.getItem('jwt');
 
   useEffect(() => {
     const fetchData = async () => {
@@ -25,9 +29,23 @@ export default function Contacts({ contacts, changeChat }) {
         console.error('Error fetching data:', error);
       }
     };
-
     fetchData();
   }, []);
+
+  useEffect(() => {
+    setFilteredContacts(
+      contacts.filter(contact => {
+        const participantName = contact.participants[0]?.name || "";
+        return participantName.toLowerCase().includes(searchTerm.toLowerCase());
+      })
+    );
+  }, [searchTerm, contacts]);
+
+  useEffect(() => {
+    if (filteredContacts.length === 0) {
+      showWelcome();
+    }
+  }, [filteredContacts, showWelcome]);
 
   const closeSearch = () => {
     setSearchTerm("");
@@ -39,12 +57,17 @@ export default function Contacts({ contacts, changeChat }) {
     changeChat(contact);
   };
 
-  const filteredContacts = contacts.filter(contact =>
-    contact.participants[0]?.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const isOnline = (contact) => {
     return onlineUsers.includes(contact.participants[0]?._id);
+  };
+
+  const handleMarkAsDone = async (conversationId) => {
+    try {
+      await markConversationAsDone(conversationId, token);
+      setFilteredContacts(filteredContacts.filter(contact => contact._id !== conversationId));
+    } catch (error) {
+      console.error('Error marking conversation as done:', error);
+    }
   };
 
   return (
@@ -60,11 +83,9 @@ export default function Contacts({ contacts, changeChat }) {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
             {isFocused ? (
-              <IoCloseOutline 
-                onClick={closeSearch} 
-              />
+              <IoCloseOutline onClick={closeSearch} />
             ) : (
-              <CiSearch/>
+              <CiSearch />
             )}
           </div>
           <div className="contacts">
@@ -75,15 +96,16 @@ export default function Contacts({ contacts, changeChat }) {
                 onClick={() => changeCurrentChat(index, contact)}
               >
                 <div className="avatar">
-                <img
+                  <img
                     src={contact.participants[0]?.avatarImage ? `data:image/svg+xml;base64,${contact.participants[0]?.avatarImage}` : "https://www.shutterstock.com/image-vector/blank-avatar-photo-place-holder-600nw-1095249842.jpg"}
                     alt="Avatar"
                   />
                   {isOnline(contact) && <OnlineIndicator />}
                 </div>
                 <div className="username">
-                  <h3>{contact.participants[0]?.name}</h3>
+                  <h3>{contact.participants[0]?.name || "Unknown"}</h3>
                 </div>
+                <MdOutlineDone className="mark-as-done" onClick={() => handleMarkAsDone(contact._id)} />
               </div>
             ))}
           </div>
@@ -165,9 +187,20 @@ const Container = styled.div`
 
       .username {
         h3 {
-          font-size: 1rem;
+          font-size: 0.8rem;
           color: #00176B;
           font-weight: 500 !important;
+        }
+      }
+
+      .mark-as-done {
+        margin-left: auto;
+        font-size: 1.5rem;
+        cursor: pointer;
+        transition: 0.3s ease-in-out;
+
+        &:hover {
+          color: #FFFFFF;
         }
       }
     }
