@@ -7,8 +7,7 @@ import moment from 'moment';
 import { 
   fetchCustomerMessages, 
   sendCustomerMessage, 
- } 
-from '../../services/apiService';
+} from '../../services/apiService';
 
 export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
@@ -44,9 +43,11 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       });
 
       socket.on('newCustomerMessage', handleNewMessage);
+      socket.on('newAgentMessage', handleNewMessage);
 
       return () => {
         socket.off('newCustomerMessage', handleNewMessage);
+        socket.off('newAgentMessage', handleNewMessage);
       };
     }
   }, [socket, currentUser._id]);
@@ -69,7 +70,7 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
         createdAt: new Date() 
       };
       
-      await sendCustomerMessage(currentChat._id, msg, adminId ,token);
+      await sendCustomerMessage(currentChat._id, msg, adminId, token);
 
       if (socket) {
         socket.emit('sendMessage', newMessage);
