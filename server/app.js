@@ -14,7 +14,9 @@ const url = process.env.NODE_ENV === 'production' ? process.env.PROD_URL : proce
 const app = express();
 
 app.use(cors({
-  origin: "*", // Replace with your frontend URL
+  origin: (_req, callback) => {
+    callback(null, true);
+  },
   credentials: true, // Allow cookies to be sent
 }));
 app.use(express.json());

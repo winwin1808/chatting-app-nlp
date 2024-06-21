@@ -6,7 +6,9 @@ const userSocketMap = {};
 export const initializeSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: ['http://localhost:3000', 'http://localhost:3002'],
+      origin: (_req, callback) => {
+        callback(null, true);
+      },
       credentials: true,
       methods: ["GET", "POST"]
     }
