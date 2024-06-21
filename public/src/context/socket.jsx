@@ -3,8 +3,7 @@ import io from 'socket.io-client';
 import { host } from '../utils/ApiRoutes';
 
 const SocketContext = createContext();
-const user = JSON.parse(localStorage.getItem("register-user"));
-
+const currentUser = JSON.parse(localStorage.getItem("register-user"));
 export const useSocketContext = () => {
     return useContext(SocketContext);
 };
@@ -14,11 +13,11 @@ export const SocketContextProvider = ({ children }) => {
     const [onlineUsers, setOnlineUsers] = useState([]);
 
     useEffect(() => {
-        if (user) {
+        if (currentUser) {
             // Initialize socket connection
             const socket = io(host, {
                 query: {
-                    userId: user._id,
+                    userId: currentUser._id,
                 },
                 withCredentials: true,
             });
@@ -30,16 +29,25 @@ export const SocketContextProvider = ({ children }) => {
                 setOnlineUsers(users);
             });
 
+            // Event listener for new customer messages
+            socket.on("newCustomerMessage", (message) => {
+                console.log("New customer message:", message);
+                // Handle new customer message
+            });
+
+            // Event listener for new agent messages
+            socket.on("newAgentMessage", (message) => {
+                console.log("New agent message:", message);
+                // Handle new agent message
+            });
+
             // Clean up the socket when the component unmounts or user logs out
             return () => {
                 socket.close();
                 setSocket(null);
             };
         }
-    }, []); // Depend on the user state to reinitialize the socket if necessary
-
-    useEffect(() => {
-    }, [onlineUsers]); // Depend on onlineUsers to log when it changes
+    }, []); // Depend on the currentUser state to reinitialize the socket if necessary
 
     return (
         <SocketContext.Provider value={{ socket, onlineUsers }}>

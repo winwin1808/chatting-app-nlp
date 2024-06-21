@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from "react";
 import styled from 'styled-components';
-import axios from 'axios';
 import { useNavigate } from "react-router-dom";
-import { allUsersRoute } from "../utils/ApiRoutes";
-import Contacts from "../components/ChatContainer/Contact";
-import Welcome from "../components/ChatContainer/Welcome";
-import ChatContainer from "../components/ChatContainer/ChatContainer";
+import { fetchAllUsers } from "../services/apiService";
+import Contacts from "../components/UserChatContainer/Contact";
+import Welcome from "../components/UserChatContainer/Welcome";
+import ChatContainer from "../components/UserChatContainer/ChatContainer";
 import { useSocketContext } from '../context/socket';
 
 export default function Chat() {
@@ -41,12 +40,10 @@ export default function Chat() {
         if (currentUser.isAvatarImageSet) {
           try {
             const token = localStorage.getItem('jwt');
-            const response = await axios.get(`${allUsersRoute}/${currentUser._id}`, {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            });
-            setContacts(response.data);
+            const data = await fetchAllUsers(token, currentUser._id);
+            // Exclude the current user from the contacts
+            const filteredContacts = data.filter(user => user._id !== currentUser._id);
+            setContacts(filteredContacts);
           } catch (error) {
             console.error('Error fetching data:', error);
           }

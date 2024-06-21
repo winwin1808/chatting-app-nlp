@@ -5,7 +5,7 @@ import { createGlobalStyle } from 'styled-components';
 import styled from 'styled-components';
 import SidebarComponent from './components/Sidebar';
 import Footer from './components/Footer';
-import Loading from './components/Loading'; // Đường dẫn đến component Loading
+import Loading from './components/Loading';
 
 const GlobalStyle = createGlobalStyle`
   :root {

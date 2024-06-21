@@ -3,11 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import { Sidebar, Menu, MenuItem } from 'react-pro-sidebar';
 import { BsChatDots, BsBarChart, BsGear, BsPower } from "react-icons/bs";
 import { MdKeyboardDoubleArrowLeft, MdKeyboardDoubleArrowRight } from 'react-icons/md';
+import { IoChatbubblesOutline } from "react-icons/io5";
 import styled from "styled-components";
 import axios from "axios";
 import { logoutRoute } from "../utils/ApiRoutes";
 import Logo from "../assets/logo.png"; 
-
 
 const SidebarComponent = () => {
   const [collapsed, setCollapsed] = useState(true);
@@ -31,6 +31,7 @@ const SidebarComponent = () => {
 
     fetchData();
   }, []);
+
   const handleLogout = async () => {
     try {
       const user = JSON.parse(localStorage.getItem("register-user"));
@@ -77,9 +78,13 @@ const SidebarComponent = () => {
           active={window.location.pathname === '/dashboard'} icon={<BsBarChart />}>
           Dashboard
         </MenuItem>
-        <MenuItem component={<Link to="/" />}
-          active={window.location.pathname === '/'} icon={<BsChatDots />}>
-          Messages
+        <MenuItem component={<Link to="/userChat" />}
+          active={window.location.pathname === '/userChat'} icon={<BsChatDots />}>
+          Internal Chat
+        </MenuItem>
+        <MenuItem component={<Link to="/customerChat" />}
+          active={window.location.pathname === '/customerChat'} icon={<IoChatbubblesOutline />}>
+          Chat Widget
         </MenuItem>
         <MenuItem component={<Link to="/admin" />}
           active={window.location.pathname === '/admin'} icon={<BsGear />}>
@@ -207,7 +212,6 @@ const StyledSidebar = styled(Sidebar)`
     bottom: 0;
     width: 100%;
     transition: background-color 0.3s ease;
-
     &:hover {
       background-color: #e0e0e0;
     }

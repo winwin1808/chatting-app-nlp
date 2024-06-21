@@ -2,7 +2,7 @@ import React, { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import styled from 'styled-components';
 import Footer from './components/Footer';
-import Loading from './components/Loading'; // Đường dẫn đến component Loading
+import Loading from './components/Loading';
 
 export default function AuthLayout() {
   return (
