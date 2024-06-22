@@ -1,192 +1,105 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import Widget from './Widget';
-import CustomerForm from './CustomerForm';
-import { useSocketContext } from '../context/socket';
-import { initializeCustomerChat, fetchCustomerMessages, sendCustomerMessage, getStatusConversation } from '../services/apiService';
-import moment from 'moment';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
+import ChatInput from './ChatInput';
+import ChatMessages from './ChatMessages';
+import ChatHeader from './ChatHeader';
+import moment from 'moment';
+import { 
+  fetchCustomerMessages, 
+  sendCustomerMessage, 
+} from '../../services/apiService';
 
-const WidgetContainer = ({ greeting, adminId, headerName }) => {
-  const { socket, setSocketCustomerId } = useSocketContext();
-  const [isChatInitialized, setIsChatInitialized] = useState(false);
+export default function ChatContainer({ currentChat, currentUser, socket }) {
   const [messages, setMessages] = useState([]);
-  const [customerId, setCustomerId] = useState(localStorage.getItem('customerId'));
-  const [conversationId, setConversationId] = useState(localStorage.getItem('conversationId'));
-
-  const fetchMessages = useCallback(async (conversationId, customerId) => {
-    try {
-      const initialMessages = await fetchCustomerMessages(conversationId);
-      const mappedMessages = initialMessages.length > 0 ? initialMessages.map((message) => ({
-        ...message,
-        fromSelf: customerId === message.sender,
-        time: moment(message.createdAt).format('LT'),
-      })) : [{ _id: '1', message: greeting, sender: 'system', fromSelf: false, time: moment().format('LT') }];
-      setMessages(mappedMessages);
-    } catch (error) {
-      console.error('Error fetching messages:', error);
-    }
-  }, [greeting]);
+  const [arrivalMessage, setArrivalMessage] = useState(null);
 
   useEffect(() => {
-    const initializeChat = async () => {
-      const name = localStorage.getItem('customerName');
-      const phone = localStorage.getItem('customerPhone');
-      
-      if (!customerId || !conversationId) {
+    const fetchCustomerMessagesAndRatings = async () => {
+      if (currentUser && currentChat) {
         try {
-          const result = await initializeCustomerChat(name, phone, adminId);
-          if (result.customerId && result.conversationId) {
-            const { customerId, conversationId } = result;
-            setLocalStorage(customerId, conversationId);
-            setCustomerId(customerId);
-            setConversationId(conversationId);
-            setSocketCustomerId(customerId); // Initialize the socket connection
-            await fetchMessages(conversationId, customerId);
-            setIsChatInitialized(true);
-          } else {
-            clearLocalStorage();
-            setIsChatInitialized(false);
-          }
+          const token = localStorage.getItem('jwt');
+          const messageResponse = await fetchCustomerMessages(currentChat._id, token);
+
+          const mappedMessages = messageResponse.map((message) => ({
+            ...message,
+            fromSelf: currentUser._id === message.sender,
+            time: moment(message.createdAt).format('LT'),
+          }));
+          setMessages(mappedMessages);
         } catch (error) {
-          console.error('Error initializing chat:', error);
-          clearLocalStorage();
-          setIsChatInitialized(false);
+          console.error('Error fetching data:', error);
         }
-      } else {
-        await checkAndInitializeChat();
       }
     };
-
-    const checkAndInitializeChat = async () => {
-      try {
-        const result = await getStatusConversation(conversationId);
-        if (result.isDone) {
-          clearLocalStorage();
-        } else {
-          await fetchMessages(conversationId, customerId);
-          setIsChatInitialized(true);
-        }
-      } catch (error) {
-        console.error('Error checking conversation status:', error);
-        clearLocalStorage();
-        setIsChatInitialized(false);
-      }
-    };
-
-    initializeChat();
-  }, [adminId, conversationId, customerId, fetchMessages, setSocketCustomerId]);
+    fetchCustomerMessagesAndRatings();
+  }, [currentChat, currentUser]);
 
   useEffect(() => {
-    if (!socket) return;
-
-    const handleNewMessage = (message) => {
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          ...message,
-          fromSelf: message.sender === customerId,
-          time: moment(message.createdAt).format('LT'),
-        }
-      ]);
-    };
-
-    socket.on('newCustomerMessage', handleNewMessage);
-    socket.on('newAgentMessage', handleNewMessage);
-    socket.on('messageSentConfirmation', handleNewMessage);
-
-    return () => {
-      socket.off('newCustomerMessage', handleNewMessage);
-      socket.off('newAgentMessage', handleNewMessage);
-      socket.off('messageSentConfirmation', handleNewMessage);
-    };
-  }, [socket, customerId]);
-
-  const handleFormSubmit = async (name, phone) => {
-    try {
-      localStorage.setItem('customerName', name);
-      localStorage.setItem('customerPhone', phone);
-
-      const result = await initializeCustomerChat(name, phone, adminId);
-      if (result.customerId && result.conversationId) {
-        const { customerId, conversationId } = result;
-        setLocalStorage(customerId, conversationId);
-        setCustomerId(customerId);
-        setConversationId(conversationId);
-        setSocketCustomerId(customerId); // Initialize the socket connection
-        setIsChatInitialized(true);
-        await fetchMessages(conversationId, customerId);
-      } else {
-        clearLocalStorage();
-        setIsChatInitialized(false);
-      }
-    } catch (error) {
-      console.error('Error initializing chat:', error);
-      clearLocalStorage();
-      setIsChatInitialized(false);
-    }
-  };
-
-  const handleSend = async (message) => {
-    const newMessage = {
-      _id: Date.now().toString(),
-      message,
-      sender: customerId,
-      fromSelf: true,
-      time: moment().format('LT')
-    };
-
     if (socket) {
-      socket.emit('sendMessage', { ...newMessage, receiver: adminId });
-    }
+      const handleNewMessage = (msg) => setArrivalMessage({ 
+        ...msg, 
+        fromSelf: msg.sender === currentUser._id, 
+        time: moment(msg.createdAt).format('LT') 
+      });
 
+      socket.on('newCustomerMessage', handleNewMessage);
+      socket.on('newAgentMessage', handleNewMessage);
+
+      return () => {
+        socket.off('newCustomerMessage', handleNewMessage);
+        socket.off('newAgentMessage', handleNewMessage);
+      };
+    }
+  }, [socket, currentUser._id]);
+
+  useEffect(() => {
+    if (arrivalMessage) {
+      setMessages((prevMessages) => [...prevMessages, arrivalMessage]);
+    }
+  }, [arrivalMessage]);
+
+  const handleSendMsg = async (msg) => {
     try {
-      await sendCustomerMessage(conversationId, message, customerId);
-      const result = await getStatusConversation(conversationId);
-      if (result.isDone) {
-        clearLocalStorage();
-        setIsChatInitialized(false);
-      } else {
-        await fetchMessages(conversationId, customerId);
+      const token = localStorage.getItem('jwt');
+      const adminId = currentUser.admin ? currentUser.admin : currentUser._id;
+
+      const newMessage = { 
+        message: msg, 
+        sender: currentUser._id, 
+        receiver: currentChat._id, 
+        createdAt: new Date() 
+      };
+      
+      await sendCustomerMessage(currentChat._id, msg, adminId, token);
+
+      if (socket) {
+        socket.emit('sendMessage', newMessage);
       }
+
+      setMessages((prevMessages) => [...prevMessages, { ...newMessage, fromSelf: true, time: moment().format('LT') }]);
     } catch (error) {
       console.error('Error sending message:', error);
     }
   };
 
-  const setLocalStorage = (customerId, conversationId) => {
-    localStorage.setItem('customerId', customerId);
-    localStorage.setItem('conversationId', conversationId);
-  };
+  const handleSendRatingRequest = () => handleSendMsg("RATING_REQUEST");
 
-  const clearLocalStorage = () => {
-    localStorage.removeItem('customerId');
-    localStorage.removeItem('conversationId');
-    localStorage.removeItem('customerName');
-    localStorage.removeItem('customerPhone');
-    setCustomerId(null);
-    setConversationId(null);
-  };
-
-  if (!isChatInitialized) {
-    return <CustomerForm onSubmit={handleFormSubmit} />;
-  }
-
-  return (
+  return currentChat ? (
     <Container>
-      <Widget headerName={headerName} messages={messages} onSend={handleSend} chatId={conversationId}/>
+      <ChatHeader currentChat={currentChat} />
+      <ChatMessages messages={messages} />
+      <ChatInput handleSendMsg={handleSendMsg} openRatingModal={handleSendRatingRequest} />
     </Container>
-  );
-};
+  ) : null;
+}
 
 const Container = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-  font-family: 'Be Vietnam Pro', sans-serif;
-  background-color: #ffffff;
-  border-radius: 1rem;
-`;
+  display: grid;
+  grid-template-rows: 10% 80% 10%;
+  gap: 0.1rem;
+  overflow: hidden;
 
-export default WidgetContainer;
+  @media screen and (min-width: 720px) and (max-width: 1080px) {
+    grid-template-rows: 15% 70% 15%;
+  }
+`;
