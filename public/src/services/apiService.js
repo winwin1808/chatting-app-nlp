@@ -9,6 +9,8 @@ import {
   updateUserRoute,
   deleteUserRoute,
   getAllRatingRoute,
+  getRatingsRoute,
+  downloadAllRatingRoute,
   allUsersRoute,
   sendCustomerMessageRoute,
   receiveCustomerMessageRoute,
@@ -88,9 +90,24 @@ export const deleteSubUser = async (userId, token) => {
 };
 
 // Report API Calls
-export const fetchAllRatings = async (filters, token) => {
+export const getAllRatings = async (filters, token) => {
   const response = await axios.post(getAllRatingRoute, filters, {
     headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const getDashboardRatings = async (filters, token) => {
+  const response = await axios.post(getRatingsRoute, filters, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+};
+
+export const downloadAllRatings = async (token) => {
+  const response = await axios.post(downloadAllRatingRoute, {}, {
+    headers: { Authorization: `Bearer ${token}` },
+    responseType: 'blob',
   });
   return response.data;
 };

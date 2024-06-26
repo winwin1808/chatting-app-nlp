@@ -1,31 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import styled from "styled-components";
 import { Chart as ChartJS, BarElement, CategoryScale, LinearScale, ArcElement } from "chart.js";
-import { fetchAllRatings, fetchAllUsers } from "../services/apiService";
+import { getAllRatings, getDashboardRatings, fetchAllUsers, downloadAllRatings } from "../services/apiService";
 import { useSocketContext } from "../context/socket";
 import { useNavigate } from 'react-router-dom';
 import Filter from "../components/DashboardContainer/Filter";
 import ChartSection from "../components/DashboardContainer/Chart";
 import Summary from "../components/DashboardContainer/Summary";
 import Loading from "../components/Loading";
-import { getRatingsData, getOnlineUsersData, getConversationsData } from "../utils/chartOptions";
+import TableView from "../components/DashboardContainer/TableView"; // New table view component
+import { getRatingsData, getSentimentsData } from "../utils/chartOptions";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, ArcElement);
 
 export default function Dashboard() {
   const token = localStorage.getItem('jwt');
   const [ratings, setRatings] = useState([]);
+  const [totalRatings, setTotalRatings] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(undefined);
   const [isLoaded, setIsLoaded] = useState(false);
   const { onlineUsers } = useSocketContext();
-  const [conversations, setConversations] = useState([]);
   const [filters, setFilters] = useState({
-    star: ['1', '2', '3', '4', '5'], // All stars selected initially
-    sender: [], // Sender initialized as an empty array
+    star: ['1', '2', '3', '4', '5'],
+    sender: [],
     start: '',
     end: ''
   });
+  const [activeTab, setActiveTab] = useState('chart'); // New state for active tab
+  const [currentPage, setCurrentPage] = useState(1); // State for current page
+  const [totalPages, setTotalPages] = useState(1); // State for total pages
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -47,57 +51,72 @@ export default function Dashboard() {
   }, [navigate]);
 
   useEffect(() => {
-    const getUsersAndRatings = async () => {
+    const getUsers = async () => {
       try {
-        if (!currentUser) return;
-
         const data = await fetchAllUsers(token, currentUser._id);
         setUsers(data);
-
-        // Initialize the sender filter with all user IDs
         const userIds = data.map(user => user._id);
         setFilters((prevFilters) => ({
           ...prevFilters,
           sender: userIds,
         }));
-
-        // Fetch ratings after setting users
-        await getRatings();
-        
         setIsLoaded(true);
       } catch (error) {
-        console.error("Error fetching users and ratings:", error);
-        setIsLoaded(true); // Ensure the page loads even if there's an error fetching users or ratings
+        console.error("Error fetching users:", error);
+        setIsLoaded(true);
       }
     };
 
-    getUsersAndRatings();
+    if (currentUser) {
+      getUsers();
+    }
   }, [token, currentUser]);
 
-  const getRatings = async () => {
+  const getRatings = useCallback(async (page = 1) => {
     try {
-      const data = await fetchAllRatings(filters, token);
-      
-      // Process the ratings data to count the number of ratings for each star value
-      const starCount = data.reduce((acc, rating) => {
+      const data = await getAllRatings({ ...filters, page }, token);
+      const starCount = data.ratings.reduce((acc, rating) => {
         acc[rating.star] = (acc[rating.star] || 0) + 1;
         return acc;
       }, {});
-
-      // Create the ratings data in the format needed for the chart
-      const processedRatings = Object.keys(starCount).map(star => ({
-        star: parseInt(star),
-        count: starCount[star]
+      const processedRatings = data.ratings.map(rating => ({
+        ...rating,
+        count: starCount[rating.star]
       }));
-
+      console.log(processedRatings);
       setRatings(processedRatings);
+      setCurrentPage(data.currentPage);
+      setTotalPages(data.totalPages);
     } catch (error) {
       console.error("Error fetching ratings:", error);
     }
-  };
+  }, [filters, token]);
+
+  const getDashboardRating = useCallback(async () => {
+    try {
+      const data = await getDashboardRatings(filters, token);
+      setTotalRatings(data.ratings);
+    } 
+    catch (error) {
+      console.error("Error fetching ratings:", error);
+    }
+  }, [filters, token]);
+
+  useEffect(() => {
+    if (isLoaded && currentUser) {
+      getRatings();
+      getDashboardRating();
+    }
+  }, [isLoaded, currentUser, getRatings, getDashboardRating]);
 
   const handleSearch = async () => {
     await getRatings();
+    await getDashboardRating();
+  };
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+    getRatings(page);
   };
 
   const handleStarChange = (list) => {
@@ -122,6 +141,21 @@ export default function Dashboard() {
     }));
   };
 
+  const handleDownloadCSV = async () => {
+    try {
+      const blob = await downloadAllRatings(token);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ratings.csv';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      console.error('Error downloading CSV:', error);
+    }
+  };
+  
   if (!isLoaded) {
     return <Loading />;
   }
@@ -129,25 +163,49 @@ export default function Dashboard() {
   return (
     <Container>
       <div className="container">
-        <Filter
-          users={users}
-          filters={filters}
-          onStarChange={handleStarChange}
-          onUserChange={handleUserChange}
-          onDateChange={handleDateChange}
-          buttonClick={handleSearch}
-        />
-        <Summary
-          totalRatings={ratings.reduce((acc, rating) => acc + rating.count, 0)}
-          onlineUsersCount={onlineUsers.length}
-          totalUsersCount={users.length}
-          conversationsCount={conversations.length}
-        />
-        <ChartSection
-          ratingsData={getRatingsData(ratings)}
-          onlineUsersData={getOnlineUsersData(onlineUsers, users.length)}
-          conversationsData={getConversationsData(conversations)}
-        />
+        <TabsWrapper>
+          <Tabs>
+            <button onClick={() => setActiveTab('chart')}>Chart View</button>
+            <button onClick={() => setActiveTab('table')}>Table View</button>
+          </Tabs>
+            <DownloadButton> 
+            <button onClick={handleDownloadCSV}>Download CSV</button>
+            </DownloadButton>
+        </TabsWrapper>
+        {activeTab === 'table' && (
+          <FilterWrapper>
+            <Filter
+              users={users}
+              filters={filters}
+              onStarChange={handleStarChange}
+              onUserChange={handleUserChange}
+              onDateChange={handleDateChange}
+              buttonClick={handleSearch}
+            />
+          </FilterWrapper>
+        )}
+        <ContentWrapper>
+          {activeTab === 'chart' && (
+            <>
+              <Summary
+                totalRatings={totalRatings.length}
+                onlineUsersCount={onlineUsers.length-1}
+              />
+              <ChartSection
+                ratingsData={getRatingsData(totalRatings)}
+                conversationsData={getSentimentsData(totalRatings)}
+              />
+            </>
+          )}
+          {activeTab === 'table' && (
+            <TableView
+              ratings={ratings}
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </ContentWrapper>
       </div>
     </Container>
   );
@@ -175,5 +233,74 @@ const Container = styled.div`
     @media screen and (max-width: 720px) {
       width: calc(100vw - 2rem);
     }
+  }
+`;
+
+const TabsWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: calc(80vw - 2rem);
+  z-index: 1;
+  @media screen and (max-width: 1080px) {
+    width: calc(100% - 2rem);
+  }
+  @media screen and (max-width: 720px) {
+    width: calc(100vw - 4rem);
+  }
+`;
+
+const FilterWrapper = styled.div`
+  width: calc(80vw - 2rem);
+  z-index: 1;
+  @media screen and (max-width: 1080px) {
+    width: calc(100% - 2rem);
+  }
+  @media screen and (max-width: 720px) {
+    width: calc(100vw - 4rem);
+  }
+`;
+
+const ContentWrapper = styled.div`
+  ${'' /* margin-top: 10rem; */}
+`;
+
+const Tabs = styled.div`
+  display: flex;
+  gap: 1rem;
+  @media screen and (max-width: 720px) {
+    flex-direction: column;
+    align-items: center;
+  }
+  button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.25rem;
+    background-color: #770000;
+    color: #fff;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    transition: background-color 0.3s;
+    &:hover {
+      background-color: #ff7290;
+    }
+  }
+`;
+
+const DownloadButton = styled.div`
+
+  button {
+  padding: 0.25rem 0.25rem;
+  left: 10rem;
+  border: none;
+  border-radius: 0.25rem;
+  background-color: #ff7290;
+  color: #fff;
+  cursor: pointer;
+  margin-right: 0.5rem;
+  transition: background-color 0.3s;
+  &:hover {
+    background-color: #770000;
+  }
   }
 `;

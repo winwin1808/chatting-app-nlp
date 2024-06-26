@@ -1,38 +1,57 @@
-export const getRatingsData = (ratings) => ({
-    labels: ratings.map((rating) => `Rating ${rating.star} stars`),
+export const getRatingsData = (ratings) => {
+  // Calculate the count of each rating star
+  const starCount = ratings.reduce((acc, rating) => {
+    acc[rating.star] = (acc[rating.star] || 0) + 1;
+    return acc;
+  }, {});
+
+  return {
+    labels: Object.keys(starCount).map((star) => `Rating ${star} stars`),
     datasets: [
       {
         label: "Number of Ratings",
-        data: ratings.map((rating) => rating.count),
+        data: Object.values(starCount),
         backgroundColor: "rgba(75, 192, 192, 0.6)",
         borderColor: "rgba(75, 192, 192, 1)",
         borderWidth: 1,
       },
     ],
-  });
-  
-  export const getOnlineUsersData = (onlineUsers, totalUsers) => ({
-    labels: ["Online Users", "Offline Users"],
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+    },
+  };
+};
+
+export const getSentimentsData = (ratings) => {
+  // Calculate the count of each sentiment
+  const sentimentCount = ratings.reduce((acc, rating) => {
+    const sentiment = rating.sentiment; // Assuming each rating has a sentiment property
+    if (sentiment === "positive") acc.positive += 1;
+    else if (sentiment === "negative") acc.negative += 1;
+    return acc;
+  }, { positive: 0, negative: 0 });
+
+  return {
+    labels: ["Positive", "Negative"],
     datasets: [
       {
-        data: [onlineUsers.length, totalUsers - onlineUsers.length],
-        backgroundColor: ["rgba(54, 162, 235, 0.6)", "rgba(255, 99, 132, 0.6)"],
-        borderColor: ["rgba(54, 162, 235, 1)", "rgba(255, 99, 132, 1)"],
+        label: "Sentiment Ratio",
+        data: [sentimentCount.positive, sentimentCount.negative],
+        backgroundColor: [
+          "rgba(75, 192, 192, 0.6)",
+          "rgba(255, 99, 132, 0.6)"
+        ],
+        borderColor: [
+          "rgba(75, 192, 192, 1)",
+          "rgba(255, 99, 132, 1)"
+        ],
         borderWidth: 1,
       },
     ],
-  });
-  
-  export const getConversationsData = (conversations) => ({
-    labels: ["Conversations"],
-    datasets: [
-      {
-        label: "Number of Conversations",
-        data: [conversations.length],
-        backgroundColor: "rgba(153, 102, 255, 0.6)",
-        borderColor: "rgba(153, 102, 255, 1)",
-        borderWidth: 1,
-      },
-    ],
-  });
-  
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+    },
+  };
+};

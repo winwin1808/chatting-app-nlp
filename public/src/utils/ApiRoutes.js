@@ -29,6 +29,8 @@ export const deleteUserRoute = (userId) => `${host}/api/user/sub-users/${userId}
 
 // Report API Routes
 export const getAllRatingRoute = `${host}/api/report/getAllRatings`;
+export const getRatingsRoute = `${host}/api/report/getRatings`;
+export const downloadAllRatingRoute = `${host}/api/report/getAllRatings/download`;
 
 //Customer API Routes
 export const getAllConversationCustomersRoute = `${host}/api/customers/getConversations`;
