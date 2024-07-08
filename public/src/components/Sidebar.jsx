@@ -7,7 +7,17 @@ import { IoChatbubblesOutline } from "react-icons/io5";
 import styled from "styled-components";
 import axios from "axios";
 import { logoutRoute } from "../utils/ApiRoutes";
-import Logo from "../assets/logo.png"; 
+import Logo from "../assets/logo.png";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+const toastOptions = {
+  position: "bottom-right",
+  autoClose: 4000,
+  pauseOnHover: true,
+  draggable: true,
+  theme: "light",
+};
 
 const SidebarComponent = () => {
   const [collapsed, setCollapsed] = useState(true);
@@ -44,61 +54,75 @@ const SidebarComponent = () => {
     }
   };
 
+  const handleUserClick = () => {
+    const user = JSON.parse(localStorage.getItem("register-user"));
+    const id = user._id;
+    navigator.clipboard.writeText(id).then(() => {
+      toast.success('User ID copied to clipboard!', toastOptions);
+    }).catch(error => {
+      toast.error('Failed to copy user ID.', toastOptions);
+      console.error('Failed to copy user ID:', error);
+    });
+  };
+
   return (
-    <StyledSidebar collapsed={collapsed}>
-      <div className={`brand ${collapsed ? 'collapsed' : ''}`}>
-        <img src={Logo} alt="logo" />
-        {!collapsed && <h3>Chatting</h3>}
-        <div className="divider"></div>
-      </div>
-      {currentUserName && currentUserImage && (
-        <div className={`current-user ${collapsed ? 'collapsed' : ''}`}>
-          <div className="avatar">
-            <img src={`data:image/svg+xml;base64,${currentUserImage}`} alt="avatar" />
-          </div>
-          {!collapsed && (
-            <div className="username">
-              <h3>{currentUserName}</h3>
-            </div>
-          )}
+    <>
+      <ToastContainer />
+      <StyledSidebar collapsed={collapsed}>
+        <div className={`brand ${collapsed ? 'collapsed' : ''}`}>
+          <img src={Logo} alt="logo" />
+          {!collapsed && <h3>Chatting</h3>}
+          <div className="divider"></div>
         </div>
-      )}
-      <Menu
-        menuItemStyles={{
-          button: ({ level, active, disabled }) => {
-            if (level === 0)
-              return {
-                color: active ? '#FFFFFF' : '#770000',
-                backgroundColor: active ? '#B63E3E' : undefined,
-              };
-          },
-        }}
-      >
-        <MenuItem component={<Link to="/dashboard" />}
-          active={window.location.pathname === '/dashboard'} icon={<BsBarChart />}>
-          Dashboard
-        </MenuItem>
-        <MenuItem component={<Link to="/userChat" />}
-          active={window.location.pathname === '/userChat'} icon={<BsChatDots />}>
-          Internal Chat
-        </MenuItem>
-        <MenuItem component={<Link to="/customerChat" />}
-          active={window.location.pathname === '/customerChat'} icon={<IoChatbubblesOutline />}>
-          Chat Widget
-        </MenuItem>
-        <MenuItem component={<Link to="/admin" />}
-          active={window.location.pathname === '/admin'} icon={<BsGear />}>
-          Setting
-        </MenuItem>
-        <MenuItem onClick={handleLogout}
-          icon={<BsPower />}>
-          Logout
-        </MenuItem>
-      </Menu>
-      <div className="expand-button" onClick={() => setCollapsed(!collapsed)}>
-        {collapsed ? <MdKeyboardDoubleArrowRight /> : <><MdKeyboardDoubleArrowLeft /> <span>Hide</span></>}
-      </div>
-    </StyledSidebar>
+        {currentUserName && currentUserImage && (
+          <div className={`current-user ${collapsed ? 'collapsed' : ''}`} onClick={handleUserClick}>
+            <div className="avatar">
+              <img src={`data:image/svg+xml;base64,${currentUserImage}`} alt="avatar" />
+            </div>
+            {!collapsed && (
+              <div className="username">
+                <h3>{currentUserName}</h3>
+              </div>
+            )}
+          </div>
+        )}
+        <Menu
+          menuItemStyles={{
+            button: ({ level, active, disabled }) => {
+              if (level === 0)
+                return {
+                  color: active ? '#FFFFFF' : '#770000',
+                  backgroundColor: active ? '#B63E3E' : undefined,
+                };
+            },
+          }}
+        >
+          <MenuItem component={<Link to="/dashboard" />}
+            active={window.location.pathname === '/dashboard'} icon={<BsBarChart />}>
+            Dashboard
+          </MenuItem>
+          <MenuItem component={<Link to="/userChat" />}
+            active={window.location.pathname === '/userChat'} icon={<BsChatDots />}>
+            Internal Chat
+          </MenuItem>
+          <MenuItem component={<Link to="/customerChat" />}
+            active={window.location.pathname === '/customerChat'} icon={<IoChatbubblesOutline />}>
+            Chat Widget
+          </MenuItem>
+          <MenuItem component={<Link to="/admin" />}
+            active={window.location.pathname === '/admin'} icon={<BsGear />}>
+            Setting
+          </MenuItem>
+          <MenuItem onClick={handleLogout}
+            icon={<BsPower />}>
+            Logout
+          </MenuItem>
+        </Menu>
+        <div className="expand-button" onClick={() => setCollapsed(!collapsed)}>
+          {collapsed ? <MdKeyboardDoubleArrowRight /> : <><MdKeyboardDoubleArrowLeft /> <span>Hide</span></>}
+        </div>
+      </StyledSidebar>
+    </>
   );
 };
 
@@ -158,6 +182,7 @@ const StyledSidebar = styled(Sidebar)`
     padding: 1.3rem;
     align-items: center;
     gap: 0.5rem;
+    cursor: pointer;
 
     .avatar {
       img {
