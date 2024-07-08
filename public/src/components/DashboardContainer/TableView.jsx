@@ -54,8 +54,10 @@ export default function TableView({ ratings, currentPage, totalPages, onPageChan
 }
 
 const TableContainer = styled.div`
+  height: 100%;
   table {
     width: 100%;
+    height: 95%;
     border-collapse: collapse;
     font-size: 9px;
     border-radius: 0.25rem;

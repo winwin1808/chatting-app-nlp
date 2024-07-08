@@ -96,7 +96,7 @@ export default function Dashboard() {
     try {
       const data = await getDashboardRatings(filters, token);
       setTotalRatings(data.ratings);
-    } 
+    }
     catch (error) {
       console.error("Error fetching ratings:", error);
     }
@@ -155,55 +155,55 @@ export default function Dashboard() {
       console.error('Error downloading CSV:', error);
     }
   };
-  
+
   if (!isLoaded) {
     return <Loading />;
   }
 
   return (
-    <Container>
+    <Container activeTab={activeTab}>
       <div className="container">
         <TabsWrapper>
           <Tabs>
-            <button onClick={() => setActiveTab('chart')}>Chart View</button>
-            <button onClick={() => setActiveTab('table')}>Table View</button>
+            <button onClick={() => setActiveTab('chart')}>Overview</button>
+            <button onClick={() => setActiveTab('table')}>Sentiment</button>
           </Tabs>
-            <DownloadButton> 
-            <button onClick={handleDownloadCSV}>Download CSV</button>
+          {activeTab === 'table' && (
+            <DownloadButton>
+              <button onClick={handleDownloadCSV}>Download CSV</button>
             </DownloadButton>
+          )}
         </TabsWrapper>
-        {activeTab === 'table' && (
-          <FilterWrapper>
-            <Filter
-              users={users}
-              filters={filters}
-              onStarChange={handleStarChange}
-              onUserChange={handleUserChange}
-              onDateChange={handleDateChange}
-              buttonClick={handleSearch}
-            />
-          </FilterWrapper>
-        )}
         <ContentWrapper>
           {activeTab === 'chart' && (
-            <>
+            <ChartContent>
               <Summary
                 totalRatings={totalRatings.length}
-                onlineUsersCount={onlineUsers.length-1}
+                onlineUsersCount={onlineUsers.length - 1}
               />
               <ChartSection
                 ratingsData={getRatingsData(totalRatings)}
                 conversationsData={getSentimentsData(totalRatings)}
               />
-            </>
+            </ChartContent>
           )}
           {activeTab === 'table' && (
-            <TableView
-              ratings={ratings}
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-            />
+            <TableContent>
+              <Filter
+                users={users}
+                filters={filters}
+                onStarChange={handleStarChange}
+                onUserChange={handleUserChange}
+                onDateChange={handleDateChange}
+                buttonClick={handleSearch}
+              />
+              <TableView
+                ratings={ratings}
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
+            </TableContent>
           )}
         </ContentWrapper>
       </div>
@@ -223,57 +223,43 @@ const Container = styled.div`
     width: 80vw;
     background-color: #FFFFFF;
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-rows: ${({ activeTab }) => (activeTab === 'chart' ? '5% 20% 60%' : '5% 80%')};
     padding: 1rem;
     border-radius: 0.7rem;
     gap: 1rem;
-    @media screen and (max-width: 1080px) {
-      width: 100%;
-    }
-    @media screen and (max-width: 720px) {
-      width: calc(100vw - 2rem);
-    }
   }
 `;
 
 const TabsWrapper = styled.div`
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  width: calc(80vw - 2rem);
   z-index: 1;
-  @media screen and (max-width: 1080px) {
-    width: calc(100% - 2rem);
-  }
-  @media screen and (max-width: 720px) {
-    width: calc(100vw - 4rem);
-  }
-`;
-
-const FilterWrapper = styled.div`
-  width: calc(80vw - 2rem);
-  z-index: 1;
-  @media screen and (max-width: 1080px) {
-    width: calc(100% - 2rem);
-  }
-  @media screen and (max-width: 720px) {
-    width: calc(100vw - 4rem);
-  }
-`;
-
-const ContentWrapper = styled.div`
-  ${'' /* margin-top: 10rem; */}
 `;
 
 const Tabs = styled.div`
   display: flex;
   gap: 1rem;
-  @media screen and (max-width: 720px) {
-    flex-direction: column;
-    align-items: center;
-  }
+  
   button {
     padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.25rem;
+    background-color: #ff7290;
+    color: #fff;
+    cursor: pointer;
+    height: 2rem;
+    margin-right: 0.5rem;
+    transition: background-color 0.3s;
+    &:hover {
+      background-color: #770000;
+    }
+  }
+`;
+
+const DownloadButton = styled.div`
+  button {
+    padding: 0.25rem 0.25rem;
+    left: 10rem;
     border: none;
     border-radius: 0.25rem;
     background-color: #770000;
@@ -287,20 +273,18 @@ const Tabs = styled.div`
   }
 `;
 
-const DownloadButton = styled.div`
-
-  button {
-  padding: 0.25rem 0.25rem;
-  left: 10rem;
-  border: none;
-  border-radius: 0.25rem;
-  background-color: #ff7290;
-  color: #fff;
-  cursor: pointer;
-  margin-right: 0.5rem;
-  transition: background-color 0.3s;
-  &:hover {
-    background-color: #770000;
-  }
-  }
+const ContentWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
 `;
+
+const ChartContent = styled.div`
+  height: 100%;
+`;
+
+const TableContent = styled.div`
+  height: 100%;
+`;
+
