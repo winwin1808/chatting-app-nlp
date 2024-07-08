@@ -23,6 +23,10 @@ const ratingSchema = new mongoose.Schema(
           isDone: {
             type: Boolean,
             default: false
+          },
+          sentiment: {
+            type: String,
+            enum: ['positive', 'negative']
           }
     },
     {
