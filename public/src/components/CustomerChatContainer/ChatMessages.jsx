@@ -13,25 +13,21 @@ const ChatMessages = ({ messages, openRatingModal }) => {
 
   return (
     <Messages>
-      {messages.map((msg) => (
-        <div ref={scrollRef} key={uuidv4()}>
-          {msg.message === "RATING_REQUEST" ? (
-            <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
-              <div className="content">
-                <StyledButton disabled={msg.fromSelf}>
-                  Rating sent
-                </StyledButton>
-                <div className="time">{msg.time}</div>
-              </div>
-            </div>
-          ) : (
-            <div className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
-              <div className="content">
-                <p>{msg.message}</p>
-                <div className="time">{msg.time}</div>
-              </div>
-            </div>
+      {messages.map((msg, index) => (
+        <div key={uuidv4()}>
+          {index > 0 && messages[index - 1].conversationId !== msg.conversationId && (
+            <Separator>------------Previous Conversation------------</Separator>
           )}
+          <div ref={scrollRef} className={`message ${msg.fromSelf ? 'sended' : 'received'}`}>
+            <div className="content">
+              {msg.message === "RATING_REQUEST" ? (
+                <StyledButton disabled={msg.fromSelf}>Rating sent</StyledButton>
+              ) : (
+                <p>{msg.message}</p>
+              )}
+              <div className="time">{msg.time}</div>
+            </div>
+          </div>
         </div>
       ))}
     </Messages>
@@ -121,4 +117,11 @@ const StyledButton = styled.button`
     color: #e0e0e0;
     cursor: not-allowed;
   }
+`;
+
+const Separator = styled.div`
+  text-align: center;
+  margin: 1rem 0;
+  color: gray;
+  font-size: 0.8rem;
 `;

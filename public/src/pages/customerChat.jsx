@@ -72,7 +72,6 @@ export default function Chat() {
   const handleNoContacts = () => {
     setCurrentChat(undefined);
   };
-
   return (
     <>
       {currentUser && currentUser._id ? (

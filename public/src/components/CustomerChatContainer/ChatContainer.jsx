@@ -19,7 +19,7 @@ export default function ChatContainer({ currentChat, currentUser, socket }) {
       if (currentUser && currentChat) {
         try {
           const token = localStorage.getItem('jwt');
-          const messageResponse = await fetchCustomerMessages(currentChat._id, token);
+          const messageResponse = await fetchCustomerMessages(currentChat.participants[0]._id, token);
 
           const mappedMessages = messageResponse.map((message) => ({
             ...message,

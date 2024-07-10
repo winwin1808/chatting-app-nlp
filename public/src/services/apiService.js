@@ -36,6 +36,7 @@ export const sendMessage = async (chatId, message, token) => {
 export const fetchCustomerMessages = async (chatId, token) => {
   const response = await axios.post(`${receiveCustomerMessageRoute}/${chatId}`, null, {
     headers: { Authorization: `Bearer ${token}` },
+    params: { userType: 'agent' }
   });
   return response.data;
 };

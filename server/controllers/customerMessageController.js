@@ -50,18 +50,48 @@ export const sendCustomerMsg = async (req, res, next) => {
 
 export const getAllCustomerMsg = async (req, res, next) => {
     try {
-        const { id: conversationId } = req.params;
+        const { id } = req.params;
+        const { userType } = req.query;
+        // Find all conversations for the given customer
+        if (userType === "agent") {
+            const conversations = await CustomerConversations.find({
+                participants: id
+            }).populate("messages");
 
-        // Fetch the conversation and populate messages
-        const conversation = await CustomerConversations.findById(conversationId).populate("messages");
-        if (!conversation) {
-            return res.status(404).json({ error: "Conversation not found" });
+            if (!conversations || conversations.length === 0) {
+                return res.status(404).json({ error: "No conversations found for this customer" });
+            }
+
+            // Extract messages from all conversations
+            const allMessages = conversations.reduce((messages, conversation) => {
+                return messages.concat(conversation.messages.map(message => ({
+                    ...message.toObject(),
+                    conversationId: conversation._id,
+                    isDone: conversation.isDone
+                })));
+            }, []);
+            // Send the messages back to the client
+            res.status(200).json(allMessages);
+        } else if (userType === "customer") {
+            const { id } = req.params;
+
+        // Find all conversations for the given customer
+        const conversations = await CustomerConversations.find({
+            participants: id
+        }).populate("messages");
+
+        if (!conversations || conversations.length === 0) {
+            return res.status(404).json({ error: "No conversations found for this customer" });
         }
 
-        const messages = conversation.messages;
+        // Extract messages from all conversations
+        const allMessages = conversations.reduce((messages, conversation) => {
+            return messages.concat(conversation.messages);
+        }, []);
 
         // Send the messages back to the client
-        res.status(200).json(messages);
+        res.status(200).json(allMessages);
+        }
     } catch (error) {
         console.log("Error in getAllCustomerMsg controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
