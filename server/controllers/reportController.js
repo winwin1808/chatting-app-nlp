@@ -31,9 +31,10 @@ export const getAllRatings = async (req, res, next) => {
             limit: parseInt(limit, 10),
         };
 
-        // Fetch the ratings based on the Mongoose query with pagination
+        // Fetch the ratings based on the Mongoose query with pagination and sorting
         const ratings = await Ratings.find(mongooseQuery)
             .populate('receiver', 'username email')
+            .sort({ createdAt: -1 })  // Sort by createdAt in descending order
             .skip((options.page - 1) * options.limit)
             .limit(options.limit);
 
