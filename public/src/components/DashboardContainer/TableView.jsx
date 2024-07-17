@@ -23,8 +23,9 @@ export default function TableView({ ratings, currentPage, totalPages, onPageChan
             <th>Content</th>
             <th>Star</th>
             <th>Is Done</th>
-            <th>Receiver Username</th>
+            <th>Receiver username</th>
             <th>Sentiment</th>
+            <th>Sentiment score</th>
           </tr>
         </thead>
         <tbody>
@@ -36,6 +37,7 @@ export default function TableView({ ratings, currentPage, totalPages, onPageChan
               <td>{rating.isDone ? 'Yes' : 'No'}</td>
               <td>{rating.receiver?.username}</td>
               <td>{rating.sentiment}</td>
+              <td>{rating.score}</td>
             </tr>
           ))}
         </tbody>

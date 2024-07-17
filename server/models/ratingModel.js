@@ -27,6 +27,9 @@ const ratingSchema = new mongoose.Schema(
           sentiment: {
             type: String,
             enum: ['positive', 'negative']
+          },
+          ratingScore: {
+            type: Number
           }
     },
     {

@@ -39,9 +39,11 @@ export const sendRating = async (req, res, next) => {
             }, { timeout: 60000 }); // 60 seconds timeout
 
             const sentimentResult = sentimentResponse.data.sentiment;
+            const score = sentimentResult.score;
 
             // Update the rating with the sentiment
             newRating.sentiment = sentimentResult;
+            newRating.ratingScore = score;
             await newRating.save();
 
             // Optionally, you can notify the client or receiver of the update here
