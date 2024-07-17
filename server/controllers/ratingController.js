@@ -23,7 +23,8 @@ export const sendRating = async (req, res, next) => {
             receiver: receiver,
             sender: sender,
             isDone: true,
-            sentiment: null // Initially set to null
+            sentiment: null, // Initially set to null
+            ratingScore: null // Initially set to null
         });
 
         // Save the rating
@@ -39,7 +40,7 @@ export const sendRating = async (req, res, next) => {
             }, { timeout: 60000 }); // 60 seconds timeout
 
             const sentimentResult = sentimentResponse.data.sentiment;
-            const score = sentimentResult.score;
+            const score = sentimentResponse.data.score;
 
             // Update the rating with the sentiment
             newRating.sentiment = sentimentResult;

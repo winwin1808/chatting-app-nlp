@@ -80,7 +80,7 @@ export const ratingDownload = async (req, res, next) => {
         }
 
         const ratings = await Ratings.find(query).populate('receiver', 'username email');
-        const csv = parse(ratings, { fields: ['createdAt', 'content', 'star', 'isDone', 'receiver.username', 'sentiment'] });
+        const csv = parse(ratings, { fields: ['createdAt', 'content', 'star', 'isDone', 'receiver.username', 'sentiment','ratingScore'] });
 
         res.header('Content-Type', 'text/csv');
         res.attachment('ratings.csv');
